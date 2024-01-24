@@ -1,15 +1,20 @@
-<table class="table-auto">
-    <tr>
-        <td class="p-2"><span>Date d´exécution: </span><span>{{ activity.get_creation_date }}</span></td>
-        <td><span>Type: </span><span>{{ activity.activity }}</span></td>
-    </tr>
-    <tr>
-        <td class="p-2"><span>Mis à jour: </span><span>{{ activity.get_updated_date }}</span></td>
+<div class="flex justify-between m-4">
+    <table class="table-auto basis-2/3">
+        <tr>
+            <td class="p-2"><span
+                    class="font-bold">Date d´exécution: </span><span>{{ activity.get_creation_date }}</span></td>
+            <td><span class="font-bold">Type: </span><span>{{ activity.get_activity_display }}</span></td>
+        </tr>
+        <tr>
+            <td class="p-2"><span class="font-bold">Mis à jour: </span><span>{{ activity.get_updated_date }}</span></td>
 
-        <td><span>Quantité: </span><span>{{ activity.fertilization.as_mks }}</span></td>
-    </tr>
-    <tr>
-        <td colspan="2" class="p-2 max-w-md"><span>Notes: </span><span>{{ activity.comment }}</span></td>
-    </tr>
-    <!-- more rows as needed -->
-</table>
+            <td><span class="font-bold">Quantité: </span><span>{{ activity.fertilization.as_mks }}</span></td>
+        </tr>
+        <!-- more rows as needed -->
+    </table>
+    <div class="basis-1/3 border rounded-md p-2">
+
+        <p class="font-bold">Remarques: </p>
+        <p>{{ activity.comment }}</p>
+    </div>
+</div>
