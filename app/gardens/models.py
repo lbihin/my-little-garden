@@ -75,10 +75,11 @@ class GenderChoices(models.TextChoices):
 
 
 class GardenOwner(models.Model):
-    activity = models.CharField(max_length=1, choices=ActivityChoices.choices)
     gender = models.CharField(max_length=3, choices=GenderChoices.choices)
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
+    mail = models.EmailField(max_length=254, blank=True, null=True)
+    phone_number = models.CharField(max_length=30, blank=True, null=True)
 
 
 class GardenQuerySet(models.QuerySet):

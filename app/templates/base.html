@@ -23,12 +23,17 @@
 <header class="bg-white">
     <div class="flex justify-between items-center mr-5 h-16">
 
-        <!-- Logo-->
-        <a href="{% url 'home' %}">
-            <img class="w-16 rounded-full ml-5"
-                 src="{% static 'img/logo.png' %}"
-                 alt="MyLittleGarden">
-        </a>
+        <div class="flex justify-center items-center">
+            <!-- Logo-->
+            <a href="{% url 'home' %}">
+                <img class="w-16 rounded-full ml-5"
+                     src="{% static 'img/logo.png' %}"
+                     alt="MyLittleGarden">
+            </a>
+            <p class="font-bold text-2xl">My Little Garden</p>
+
+        </div>
+
         <!-- Navbar -->
         {% include 'partials/navbar.html' %}
     </div>

@@ -8,7 +8,16 @@
         <tr>
             <td class="p-2"><span class="font-bold">Mis à jour: </span><span>{{ activity.get_updated_date }}</span></td>
 
-            <td><span class="font-bold">Quantité: </span><span>{{ activity.fertilization.as_mks }}</span></td>
+            <td><span class="font-bold">Quantité: </span><span>{{ activity.get_quantity }}</span></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="text-xs italic">
+                {% for element, qty in activity.get_base_element_quantity.items %}
+                <span>{{ element }}:{{ qty }}</span>
+               {% endfor %}
+            </td>
+
         </tr>
         <!-- more rows as needed -->
     </table>

@@ -31,7 +31,7 @@
             </li>
         </ol>
 
-        <div id="detail-content" class="w-full bg-green-600">
+        <div id="detail-content" class="w-full">
             <div class="rounded-md bg-gray-100 p-2">
 
                 <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
@@ -41,15 +41,17 @@
                 <p>{% include 'gardens/partials/garden-address.html' %}</p>
             </div>
 
-
-            <div class="bg-orange-600 min-h-full">
+            {% block garden_detail_content %}
+                <div>
+                    <h1 class="font-bold text-3xl m-4">Tableau de bord</h1>
+                </div>
+                <div class="min-h-full">
                 {#                # TODO: For Home Implement Stepper with form https://flowbite.com/docs/components/stepper/#}
-                {% block garden_detail_content %}
-                    <div class="border-t-2 border-gray-600 m-2">
-                        <h2 class="font-bold text-sm">Voici votre description concernant le jardin</h2>
-                        <div>{{ garden.description }}</div>
-                    </div>
-                {% endblock garden_detail_content %}
+                <div class="border-t-2 border-gray-600 m-2">
+                    <h2 class="font-bold text-sm">Voici votre description concernant le jardin</h2>
+                    <div>{{ garden.description }}</div>
+                </div>
+            {% endblock garden_detail_content %}
             </div>
         </div>
 

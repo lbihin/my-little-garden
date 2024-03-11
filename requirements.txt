@@ -1,7 +1,8 @@
-django>=4.2,<4.3
+django>=4.2.9,<4.3
 gunicorn
 psycopg2-binary
 django-dotenv
 Pint==0.23
 python-dotenv==1.0.0
 django-enumfields==2.1.1
+django-extensions>=3.2,<3.3
