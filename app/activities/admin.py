@@ -18,6 +18,6 @@ class FertilizationAdmin(admin.ModelAdmin):
 
 @admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
-    list_display = ('creation', 'garden', 'fertilization')
+    list_display = ('creation', 'garden', 'task')
     # search_fields = ('activity',)
     readonly_fields = ('updated',)

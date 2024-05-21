@@ -6,7 +6,8 @@ from app import utils
 app_name = 'activities'
 
 urlpatterns = [
-    path('', views.ActivityListView.as_view(), name='index')
+    path('', views.ActivityListView.as_view(), name='index'),
+    path('create/', views.ActivityUpdateView.as_view(), name='create_activity')
 ]
 
 htmx_urlpatterns = [

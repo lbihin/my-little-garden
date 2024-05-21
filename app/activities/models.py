@@ -79,7 +79,7 @@ class Activity(models.Model):
     updated = models.DateTimeField(auto_now=True)
     comment = models.TextField()
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='activities', null=True, blank=True)
-    fertilization = models.OneToOneField(FertilizationTask, on_delete=models.CASCADE, null=True, blank=True)
+    task = models.OneToOneField(FertilizationTask, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         ordering = ('creation',)

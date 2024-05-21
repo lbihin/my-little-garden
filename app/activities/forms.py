@@ -1,9 +1,16 @@
 from django import forms
 
-from activities.models import Fertilization
+from activities.models import FertilizationTask, Activity
 
 
 class FertilizationForm(forms.ModelForm):
     class Meta:
-        model = Fertilization
-        fields = ['due_date', 'quantity_as_float', 'unit']
+        model = FertilizationTask
+        fields = ['fertilizer', 'quantity_as_float', 'unit']
+
+
+class ActivityForm(forms.ModelForm):
+
+    class Meta:
+        model = Activity
+        fields = ('comment', )

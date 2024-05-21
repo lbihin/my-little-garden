@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'widget_tweaks',
+    'crispy_forms',
+    'formtools',
     'django_htmx',
     'gardens',
 ]
