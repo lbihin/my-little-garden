@@ -19,6 +19,25 @@
       {% endif %}
     </h2>
 
+    <!-- Identification suggestion (only on create, not edit) -->
+    {% if not plant %}
+      <div class="card bg-base-100 shadow-sm border-l-4 border-info mb-5">
+        <div class="card-body p-4">
+          <h3 class="card-title text-sm">💡 Vous ne connaissez pas le nom ?</h3>
+          <p class="text-xs opacity-60 mt-1">Utilisez notre outil d'identification pour trouver votre plante par son nom ou à partir d'une photo.</p>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}?mode=search" class="btn btn-info btn-outline btn-sm gap-1">🌿 Recherche par nom</a>
+            <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}?mode=photo" class="btn btn-info btn-outline btn-sm gap-1">📸 Identifier par photo</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Manual form -->
+    {% if not plant %}
+      <h3 class="text-sm font-semibold opacity-50 uppercase tracking-wide mb-3">Ou ajouter manuellement</h3>
+    {% endif %}
+
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body">
         <form method="post">
@@ -43,14 +62,7 @@
           </fieldset>
 
           <div class="card-actions justify-end">
-            <a href="{% if plant %}
-                {{ plant.get_absolute_url }}
-              {% else %}
-                {% url 'gardens:plants:list' garden_slug=garden.slug %}
-              {% endif %}"
-              class="btn btn-ghost">
-              Annuler
-            </a>
+            <a href="{% if plant %}{{ plant.get_absolute_url }}{% else %}{% url 'gardens:plants:list' garden_slug=garden.slug %}{% endif %}" class="btn btn-ghost">Annuler</a>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
