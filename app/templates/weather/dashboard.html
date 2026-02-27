@@ -1,7 +1,7 @@
 {% extends 'gardens/details.html' %}
 
 {% block title %}
-  Météo — {{ garden.name }} — My Little Garden
+  Conditions du jardin — {{ garden.name }} — My Little Garden
 {% endblock %}
 
 {% block extra_head %}
@@ -12,19 +12,25 @@
   <div class="flex flex-col gap-6">
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <div>
-        <h2 class="text-2xl font-bold">🌤️ Météo & Sol</h2>
-        <p class="text-sm opacity-60">
-          📍 {{ location_source }}
-          {% if report %}
-            · Saison : {{ report.season|capfirst }}
-          {% endif %}
-        </p>
+      <div class="flex items-center gap-3">
+        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm btn-circle" title="Retour au tableau de bord">←</a>
+        <div>
+          <h2 class="text-2xl font-bold">🌤️ Conditions du jardin</h2>
+          <p class="text-sm opacity-60">
+            📍 {{ location_source }}
+            {% if report %}
+              · Saison : {{ report.season|capfirst }}
+            {% endif %}
+          </p>
+        </div>
       </div>
-      <div class="join">
-        <a href="?days=1" class="join-item btn btn-sm {% if days == 1 %}btn-active{% endif %}">24h</a>
-        <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
-        <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
+      <div class="flex items-center gap-2">
+        <div class="join">
+          <a href="?days=1" class="join-item btn btn-sm {% if days == 1 %}btn-active{% endif %}">24h</a>
+          <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
+          <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
+        </div>
+        <a href="?days={{ days }}&refresh=1" class="btn btn-sm btn-ghost" title="Actualiser les données météo">🔄</a>
       </div>
     </div>
 
@@ -60,11 +66,17 @@
         <div class="stat bg-base-100 shadow-sm rounded-box p-4" title="Zone racines (~6 cm) — la pousse reprend au-dessus de 8 °C">
           <div class="stat-title text-xs">🌾 Sol racines</div>
           <div class="stat-value text-xl {% if current.soil_6cm < 8 %}
+              
               text-info
+
             {% elif current.soil_6cm > 25 %}
+              
               text-warning
+
             {% else %}
+              
               text-success
+
             {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
           <div class="stat-desc">à 6 cm</div>
         </div>
@@ -75,118 +87,20 @@
       </div>
 
       <!-- ═══════════════════════════════════════ -->
-      <!-- Arrosage détaillé -->
+      <!-- Arrosage détaillé (HTMX swappable) -->
       <!-- ═══════════════════════════════════════ -->
-      {% if report.watering %}
-        <div class="card bg-base-100 shadow-sm">
-          <div class="card-body p-5">
-            <!-- Header row: title + profile badge + edit link -->
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 class="card-title text-base">🚿 Arrosage — bilan hebdomadaire</h3>
-              <div class="flex items-center gap-2">
-                <span class="badge badge-outline gap-1">{{ report.watering.profile_label }}</span>
-                <a href="{{ garden.get_edit_url }}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100" title="Changer de profil">✏️</a>
-              </div>
-            </div>
-
-            <!-- Visual water budget bar -->
-            <div class="mb-4">
-              <div class="flex justify-between text-xs opacity-60 mb-1">
-                <span>Pluies : {{ report.watering.weekly_precip|floatformat:0 }} mm</span>
-                <span>Besoin : {{ report.watering.weekly_need|floatformat:0 }} mm ({{ report.watering.et0_replacement_pct }}% de l'évaporation compensée)</span>
-              </div>
-              <div class="w-full bg-base-200 rounded-full h-4 overflow-hidden">
-                {% if report.watering.weekly_need > 0 %}
-                  <div class="h-full rounded-full transition-all {% if report.watering.weekly_deficit == 0 %}
-                      bg-success
-                    {% elif report.watering.weekly_deficit <= 10 %}
-                      bg-info
-                    {% else %}
-                      bg-warning
-                    {% endif %}"
-                    style="width: min({% widthratio report.watering.weekly_precip report.watering.weekly_need 100 %}%, 100%)"></div>
-                {% else %}
-                  <div class="h-full rounded-full bg-success w-full"></div>
-                {% endif %}
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="opacity-40">0 mm</span>
-                {% if report.watering.weekly_deficit > 0 %}
-                  <span class="font-semibold text-warning">▲ Déficit : {{ report.watering.weekly_deficit|floatformat:0 }} mm ({{ report.watering.litres_per_m2|floatformat:0 }} L/m²)</span>
-                {% else %}
-                  <span class="font-semibold text-success">✓ Besoins couverts</span>
-                {% endif %}
-                <span class="opacity-40">{{ report.watering.weekly_need|floatformat:0 }} mm</span>
-              </div>
-            </div>
-
-            <!-- Stats row: évaporation / pluies / besoin / déficit -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div class="text-center p-2 rounded-lg bg-base-200/50">
-                <div class="text-xs opacity-50" title="Évapotranspiration de référence (ET₀) — eau perdue naturellement par le sol et le gazon">☀️ Évaporation</div>
-                <div class="text-lg font-bold">{{ report.watering.weekly_et0|floatformat:0 }}</div>
-                <div class="text-xs opacity-40">mm / semaine</div>
-              </div>
-              <div class="text-center p-2 rounded-lg bg-base-200/50">
-                <div class="text-xs opacity-50">🌧️ Pluies</div>
-                <div class="text-lg font-bold text-info">{{ report.watering.weekly_precip|floatformat:0 }}</div>
-                <div class="text-xs opacity-40">mm / semaine</div>
-              </div>
-              <div class="text-center p-2 rounded-lg bg-base-200/50">
-                <div class="text-xs opacity-50" title="Quantité d'eau à apporter ({{ report.watering.et0_replacement_pct }}% de l'évaporation)">🎯 Besoin</div>
-                <div class="text-lg font-bold">{{ report.watering.weekly_need|floatformat:0 }}</div>
-                <div class="text-xs opacity-40">mm / semaine</div>
-              </div>
-              <div class="text-center p-2 rounded-lg {% if report.watering.weekly_deficit > 0 %}
-                  bg-warning/10
-                {% else %}
-                  bg-success/10
-                {% endif %}">
-                <div class="text-xs opacity-50">💧 Déficit</div>
-                <div class="text-lg font-bold {% if report.watering.weekly_deficit > 0 %}
-                    text-warning
-                  {% else %}
-                    text-success
-                  {% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }}</div>
-                <div class="text-xs opacity-40">mm</div>
-              </div>
-            </div>
-
-            <!-- Total litres callout -->
-            {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
-              <div class="alert alert-warning mt-3 py-2">
-                <span class="text-sm">💡 Pour vos <strong>{{ report.watering.surface }} m²</strong> : arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} litres</strong> répartis sur la semaine</span>
-              </div>
-            {% endif %}
-
-            <!-- 24h balance detail -->
-            <div class="divider text-xs opacity-40 my-2">Bilan 24 h</div>
-            <div class="flex flex-wrap items-center gap-3 text-sm">
-              <span>🌧️ Pluie : <strong>{{ report.precip_last_24h|floatformat:1 }} mm</strong></span>
-              <span class="opacity-40">−</span>
-              <span>☀️ Évaporation : <strong>{{ report.et0_last_24h|floatformat:1 }} mm</strong></span>
-              <span class="opacity-40">=</span>
-              <span class="font-semibold {% if report.water_balance < 0 %}
-                  text-warning
-                {% else %}
-                  text-success
-                {% endif %}">
-                ⚖️ {{ report.water_balance|floatformat:1 }} mm
-              </span>
-            </div>
-          </div>
-        </div>
-      {% endif %}
+      {% include 'weather/partials/watering.html' %}
 
       <!-- ═══════════════════════════════════════ -->
-      <!-- Conseils greenkeeping -->
+      <!-- Conseils greenkeeping — traffic-light -->
       <!-- ═══════════════════════════════════════ -->
       {% if report.advices %}
         <div>
           <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
             {% for advice in report.advices %}
-              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
+              <div tabindex="0"
+                class="collapse collapse-arrow bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
                   border-success
                 {% elif advice.status.value == 'info' %}
                   border-info
@@ -195,14 +109,22 @@
                 {% elif advice.status.value == 'danger' %}
                   border-error
                 {% endif %}">
-                <div class="card-body p-4">
-                  <div class="flex items-start gap-2">
-                    <span class="text-xl">{{ advice.icon }}</span>
-                    <div>
-                      <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
-                      <p class="text-xs opacity-70 mt-1">{{ advice.detail }}</p>
-                    </div>
-                  </div>
+                <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
+                  <span class="w-3 h-3 rounded-full shrink-0 {% if advice.status.value == 'ok' %}
+                      bg-success
+                    {% elif advice.status.value == 'info' %}
+                      bg-info
+                    {% elif advice.status.value == 'warn' %}
+                      bg-warning
+                    {% elif advice.status.value == 'danger' %}
+                      bg-error
+                    {% endif %}">
+
+                  </span>
+                  <span>{{ advice.icon }} {{ advice.title }}</span>
+                </div>
+                <div class="collapse-content px-4 pb-3">
+                  <p class="text-xs opacity-70 ml-6">{{ advice.detail }}</p>
                 </div>
               </div>
             {% endfor %}
@@ -211,40 +133,31 @@
       {% endif %}
 
       <!-- ═══════════════════════════════════════ -->
-      <!-- Graphiques -->
+      <!-- Graphiques (repliés par défaut) -->
       <!-- ═══════════════════════════════════════ -->
+      <details class="group">
+        <summary class="cursor-pointer select-none flex items-center gap-2 text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity py-2">
+          <span class="transition-transform group-open:rotate-90">▶</span>
+          📊 Graphiques détaillés
+        </summary>
+        <div class="flex flex-col gap-4 mt-3">
+          <!-- Precipitation + ET₀ chart -->
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h3 class="card-title text-sm">🌧️ Précipitations & Évapotranspiration</h3>
+              <canvas id="precipChart" height="120"></canvas>
+            </div>
+          </div>
 
-      <!-- Air temperature + humidity chart -->
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
-          <h3 class="card-title text-sm">🌡️ Température & Humidité</h3>
-          <canvas id="tempChart" height="120"></canvas>
+          <!-- Soil temperature chart -->
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h3 class="card-title text-sm">🌱 Température du sol</h3>
+              <canvas id="soilTempChart" height="120"></canvas>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <!-- Precipitation + ET₀ chart -->
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
-          <h3 class="card-title text-sm">🌧️ Précipitations & Évapotranspiration</h3>
-          <canvas id="precipChart" height="120"></canvas>
-        </div>
-      </div>
-
-      <!-- Soil temperature chart -->
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
-          <h3 class="card-title text-sm">🌱 Température du sol</h3>
-          <canvas id="soilTempChart" height="120"></canvas>
-        </div>
-      </div>
-
-      <!-- Moisture chart -->
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
-          <h3 class="card-title text-sm">💧 Humidité du sol (m³/m³)</h3>
-          <canvas id="moistureChart" height="100"></canvas>
-        </div>
-      </div>
+      </details>
     {% endif %}
   </div>
 {% endblock %}
@@ -268,27 +181,7 @@
         elements: { point: { radius: 0 }, line: { tension: 0.3, borderWidth: 2 } },
     };
 
-    // 1. Air temperature + humidity
-    new Chart(document.getElementById('tempChart'), {
-        type: 'line',
-        data: {
-            labels: shortLabels,
-            datasets: [
-                { label: 'Air (°C)', data: {{ chart_air_temp|safe }}, borderColor: '#f59e0b', backgroundColor: '#f59e0b22' },
-                { label: 'Humidité (%)', data: {{ chart_humidity|safe }}, borderColor: '#3b82f6', backgroundColor: '#3b82f622', yAxisID: 'y1' },
-            ]
-        },
-        options: {
-            ...commonOpts,
-            scales: {
-                ...commonOpts.scales,
-                y:  { position: 'left',  title: { display: true, text: '°C' } },
-                y1: { position: 'right', title: { display: true, text: '%' }, grid: { drawOnChartArea: false } },
-            }
-        }
-    });
-
-    // 2. Precipitation + ET₀
+    // Precipitation + ET₀
     new Chart(document.getElementById('precipChart'), {
         type: 'bar',
         data: {
@@ -309,7 +202,7 @@
         }
     });
 
-    // 3. Soil temperatures
+    // 2. Soil temperatures
     new Chart(document.getElementById('soilTempChart'), {
         type: 'line',
         data: {
@@ -324,22 +217,6 @@
         options: {
             ...commonOpts,
             scales: { ...commonOpts.scales, y: { title: { display: true, text: '°C' } } }
-        }
-    });
-
-    // 4. Soil moisture
-    new Chart(document.getElementById('moistureChart'), {
-        type: 'line',
-        data: {
-            labels: shortLabels,
-            datasets: [
-                { label: 'Surface (0-1 cm)', data: {{ chart_moisture_surface|safe }}, borderColor: '#0ea5e9', fill: true, backgroundColor: '#0ea5e922' },
-                { label: 'Profondeur (1-3 cm)', data: {{ chart_moisture_deep|safe }}, borderColor: '#8b5cf6', fill: true, backgroundColor: '#8b5cf622' },
-            ]
-        },
-        options: {
-            ...commonOpts,
-            scales: { ...commonOpts.scales, y: { title: { display: true, text: 'm³/m³' } } }
         }
     });
 })();

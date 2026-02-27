@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from django.core.cache import cache
 from django.test import Client
 from django.urls import reverse
 from weather.services import WeatherData, fetch_weather
@@ -80,6 +81,9 @@ class TestWeatherData:
 
 
 class TestFetchWeather:
+    def setup_method(self):
+        cache.clear()
+
     @patch("weather.services.httpx.get")
     def test_success(self, mock_get):
         mock_get.return_value.status_code = 200
@@ -154,7 +158,7 @@ class TestWeatherDashboardView:
         )
         resp = auth_client.get(url)
         assert resp.status_code == 200
-        assert "Météo" in resp.content.decode()
+        assert "Conditions du jardin" in resp.content.decode()
 
     @patch("weather.views.fetch_weather")
     def test_dashboard_with_days_param(self, mock_fetch, auth_client, garden):

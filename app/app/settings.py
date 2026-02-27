@@ -138,3 +138,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGOUT_REDIRECT_URL = "home"
 LOGIN_REDIRECT_URL = "gardens:list"
+
+# Cache
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "mlg-cache",
+    }
+}
+WEATHER_CACHE_TTL = 30 * 60  # 30 minutes

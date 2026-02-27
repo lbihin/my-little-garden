@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 import httpx
+from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -143,19 +145,32 @@ def fetch_weather(
     longitude: float,
     forecast_days: int = 7,
     past_days: int = 7,
+    force_refresh: bool = False,
 ) -> WeatherData:
     """
     Fetch weather data from Open-Meteo (past measured + forecast).
+
+    Results are cached for WEATHER_CACHE_TTL seconds (default 30 min).
+    Pass force_refresh=True to bypass and update the cache.
 
     Args:
         latitude: Garden latitude.
         longitude: Garden longitude.
         forecast_days: Number of forecast days (1-16, default 7).
         past_days: Number of past days with measured data (0-92, default 7).
+        force_refresh: If True, ignore cached data and call the API.
 
     Returns:
         WeatherData with all the time series, or an error message.
     """
+    cache_key = f"weather:{latitude:.4f}:{longitude:.4f}:{forecast_days}:{past_days}"
+    ttl = getattr(settings, "WEATHER_CACHE_TTL", 30 * 60)
+
+    if not force_refresh:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
     params = {
         "latitude": latitude,
         "longitude": longitude,
@@ -178,7 +193,7 @@ def fetch_weather(
     data = response.json()
     hourly = data.get("hourly", {})
 
-    return WeatherData(
+    result = WeatherData(
         times=hourly.get("time", []),
         air_temperature=hourly.get("temperature_2m", []),
         humidity=hourly.get("relative_humidity_2m", []),
@@ -197,3 +212,8 @@ def fetch_weather(
         longitude=data.get("longitude"),
         timezone=data.get("timezone", ""),
     )
+
+    if result.ok:
+        cache.set(cache_key, result, ttl)
+
+    return result

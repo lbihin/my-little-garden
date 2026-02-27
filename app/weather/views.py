@@ -1,10 +1,11 @@
 import json
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.views import View
 from django.views.generic import TemplateView
 from gardens.models import Garden
-from weather.greenkeeping import analyse
+from weather.greenkeeping import WATERING_PROFILES, analyse
 from weather.services import fetch_weather
 
 # Default coordinates (Paris) if garden has no address
@@ -32,7 +33,10 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             context["location_source"] = "Paris (par défaut)"
 
         days = int(self.request.GET.get("days", 3))
-        weather = fetch_weather(lat, lon, forecast_days=days)
+        force_refresh = self.request.GET.get("refresh") == "1"
+        weather = fetch_weather(
+            lat, lon, forecast_days=days, force_refresh=force_refresh
+        )
         context["weather"] = weather
         context["days"] = days
 
@@ -47,21 +51,47 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             )
             context["report"] = report
 
-            # Serialize for Chart.js
+            # Profiles dict for inline selector
+            context["profiles"] = WATERING_PROFILES
+
+            # Serialize for Chart.js (only charts we display)
             context["chart_labels"] = json.dumps(weather.times)
-            context["chart_air_temp"] = json.dumps(weather.air_temperature)
-            context["chart_humidity"] = json.dumps(weather.humidity)
             context["chart_precipitation"] = json.dumps(weather.precipitation)
             context["chart_wind_speed"] = json.dumps(weather.wind_speed)
-            context["chart_uv_index"] = json.dumps(weather.uv_index)
+            context["chart_et0"] = json.dumps(weather.evapotranspiration)
             context["chart_soil_0"] = json.dumps(weather.soil_temp_0cm)
             context["chart_soil_6"] = json.dumps(weather.soil_temp_6cm)
             context["chart_soil_18"] = json.dumps(weather.soil_temp_18cm)
             context["chart_soil_54"] = json.dumps(weather.soil_temp_54cm)
-            context["chart_moisture_surface"] = json.dumps(
-                weather.soil_moisture_surface
-            )
-            context["chart_moisture_deep"] = json.dumps(weather.soil_moisture_deep)
-            context["chart_et0"] = json.dumps(weather.evapotranspiration)
 
         return context
+
+
+class ChangeWateringProfileView(LoginRequiredMixin, View):
+    """HTMX endpoint to change watering profile inline."""
+
+    def post(self, request, garden_slug):
+        garden = get_object_or_404(Garden, slug=garden_slug)
+        profile = request.POST.get("watering_profile", "standard")
+        if profile in WATERING_PROFILES:
+            garden.watering_profile = profile
+            garden.save(update_fields=["watering_profile"])
+
+        # Fetch weather so we can re-render the watering partial
+        if garden.address and garden.address.latitude and garden.address.longitude:
+            lat = float(garden.address.latitude)
+            lon = float(garden.address.longitude)
+        else:
+            lat, lon = DEFAULT_LAT, DEFAULT_LON
+
+        weather = fetch_weather(lat, lon)
+        report = analyse(
+            weather, profile=garden.watering_profile, surface=garden.surface or 0
+        )
+
+        context = {
+            "garden": garden,
+            "report": report,
+            "profiles": WATERING_PROFILES,
+        }
+        return render(request, "weather/partials/watering.html", context)

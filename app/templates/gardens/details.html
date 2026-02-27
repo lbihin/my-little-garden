@@ -23,7 +23,7 @@
           <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">🧪 Entretien</a>
         </li>
         <li>
-          <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">🌤️ Météo & Sol</a>
+          <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">🌤️ Conditions du jardin</a>
         </li>
       </ul>
 
@@ -79,9 +79,13 @@
           <!-- 1. Watering summary card -->
           {% if report.watering %}
             <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}
+                
                 border-warning
+
               {% else %}
+                
                 border-success
+
               {% endif %}">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between">
@@ -117,13 +121,17 @@
                 <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}
                     
                     
+                    
                     border-error
+
 
 
                   {% else %}
                     
                     
+                    
                     border-warning
+
 
 
                   {% endif %}">
@@ -146,13 +154,17 @@
             <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}
                 
                 
+                
                 border-info
+
 
 
               {% else %}
                 
                 
+                
                 border-success
+
 
 
               {% endif %}">
@@ -245,7 +257,7 @@
         <!-- ═══════════════════════════════════════ -->
         {% if report %}
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-lg font-semibold">🌤️ Météo & Sol</h3>
+            <h3 class="text-lg font-semibold">🌤️ Conditions du jardin</h3>
             <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100">Voir plus →</a>
           </div>
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
@@ -256,11 +268,17 @@
             <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Zone racines (~6 cm)">
               <div class="stat-title text-xs">🌾 Sol</div>
               <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
+                  
                   text-info
+
                 {% elif report.soil_temp_roots > 25 %}
+                  
                   text-warning
+
                 {% else %}
+                  
                   text-success
+
                 {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
@@ -286,46 +304,28 @@
         {% endif %}
 
         <!-- ═══════════════════════════════════════ -->
-        <!-- All greenkeeping advice cards -->
+        <!-- All greenkeeping advice — traffic-light -->
         <!-- ═══════════════════════════════════════ -->
         {% if report %}
-          <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold">🌱 Conseils gazon</h3>
+            <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100">Voir plus →</a>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
             {% for advice in report.advices %}
-              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
-                  
-                  
-                  border-success
+              <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-100 shadow-sm">
+                <span class="w-3 h-3 rounded-full shrink-0 {% if advice.status.value == 'ok' %}
+                    bg-success
+                  {% elif advice.status.value == 'info' %}
+                    bg-info
+                  {% elif advice.status.value == 'warn' %}
+                    bg-warning
+                  {% elif advice.status.value == 'danger' %}
+                    bg-error
+                  {% endif %}">
 
-
-                {% elif advice.status.value == 'info' %}
-                  
-                  
-                  border-info
-
-
-                {% elif advice.status.value == 'warn' %}
-                  
-                  
-                  border-warning
-
-
-                {% elif advice.status.value == 'danger' %}
-                  
-                  
-                  border-error
-
-
-                {% endif %}">
-                <div class="card-body p-4">
-                  <div class="flex items-start gap-2">
-                    <span class="text-xl">{{ advice.icon }}</span>
-                    <div>
-                      <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
-                      <p class="text-xs opacity-70 mt-1">{{ advice.detail }}</p>
-                    </div>
-                  </div>
-                </div>
+                </span>
+                <span class="text-sm">{{ advice.icon }} {{ advice.title }}</span>
               </div>
             {% endfor %}
           </div>
