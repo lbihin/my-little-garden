@@ -6,7 +6,7 @@ def compute_time_difference(date: datetime):
     time_difference = current_time - date
 
     if time_difference < timedelta(minutes=1):
-        return f"il y a moins d´une minute."
+        return "il y a moins d´une minute."
     elif time_difference < timedelta(hours=1):
         minutes = int(time_difference.total_seconds() / 60)
         return f"il y a {minutes}min."

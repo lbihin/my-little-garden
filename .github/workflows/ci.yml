@@ -5,6 +5,7 @@ on:
     branches: ["**"]
   pull_request:
     branches: [main, dev]
+  workflow_call:
 
 jobs:
   # ─────────────────────────────────────────
@@ -59,20 +60,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check Tailwind input exists
+        id: tailwind_input
+        run: |
+          if [ -f app/static/tw/tailwind-input.css ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.tailwind_input.outputs.exists == 'true'
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install Node dependencies
+        if: steps.tailwind_input.outputs.exists == 'true'
         run: npm ci
 
       - name: Build Tailwind CSS
+        if: steps.tailwind_input.outputs.exists == 'true'
         run: npm run build
 
       - name: Upload compiled CSS
+        if: steps.tailwind_input.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: compiled-css
           path: app/static/css/mlghome-ui.css
           retention-days: 7
+
+      - name: Skip Tailwind build
+        if: steps.tailwind_input.outputs.exists != 'true'
+        run: echo "app/static/tw/tailwind-input.css not found, skipping Tailwind build."

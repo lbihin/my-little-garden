@@ -42,7 +42,7 @@ class TestGardenSlugUniqueness:
 
     def test_slugify_instance_name_no_collision(self, user):
         """Each call produces a unique slug suffix."""
-        base = Garden.objects.create(name="Duplicata", created_by=user)
+        Garden.objects.create(name="Duplicata", created_by=user)
         # Create some collision entries
         for _ in range(5):
             Garden.objects.create(name="Duplicata", created_by=user)

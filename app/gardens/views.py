@@ -100,7 +100,7 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
 
         # Plant tasks for the dashboard "On fait quoi aujourd'hui?" section
         try:
-            from plants.models import Plant, PlantTask
+            from plants.models import PlantTask
 
             garden = self.object
             context["plant_count"] = garden.plants.count()
@@ -121,7 +121,7 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
         # Care suggestions based on plant genus + weather + season
         try:
             from plants.care import suggest_care_tasks
-            from plants.models import Plant, PlantTask
+            from plants.models import PlantTask
 
             garden = self.object
             plants = list(garden.plants.all())
