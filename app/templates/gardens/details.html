@@ -41,11 +41,9 @@
 
         {% if report %}
           <!-- Summary strip -->
-          <p class="text-sm opacity-60 mb-4">
-            📍 {{ location_source }}
+          <p class="text-sm opacity-60 mb-4">📍 {{ location_source }}
             · Saison : {{ report.season|capfirst }}
-            · Analyse du {{ report.generated_at }}
-          </p>
+            · Analyse du {{ report.generated_at }}</p>
 
           <!-- Key metrics -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
@@ -98,10 +96,9 @@
                     <span>Pluies : {{ report.watering.weekly_precip|floatformat:0 }} mm</span>
                     <span>Besoin : {{ report.watering.weekly_need|floatformat:0 }} mm ({{ report.watering.et0_replacement_pct }}% ET₀)</span>
                   </div>
-                  <div class="w-full bg-base-200 rounded-full h-4 overflow-hidden relative">
+                  <div class="w-full bg-base-200 rounded-full h-4 overflow-hidden">
                     {% if report.watering.weekly_need > 0 %}
-                      <div class="h-full rounded-full transition-all {% if report.watering.weekly_deficit == 0 %}bg-success{% elif report.watering.weekly_deficit <= 10 %}bg-info{% else %}bg-warning{% endif %}"
-                           style="width: min({% widthratio report.watering.weekly_precip report.watering.weekly_need 100 %}%, 100%)"></div>
+                      <div class="h-full rounded-full transition-all {% if report.watering.weekly_deficit == 0 %}bg-success{% elif report.watering.weekly_deficit <= 10 %}bg-info{% else %}bg-warning{% endif %}" style="width: min({% widthratio report.watering.weekly_precip report.watering.weekly_need 100 %}%, 100%)"></div>
                     {% else %}
                       <div class="h-full rounded-full bg-success w-full"></div>
                     {% endif %}
@@ -119,17 +116,17 @@
 
                 <!-- Stats row -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div class="text-center p-2 bg-base-200/50 rounded-lg">
+                  <div class="text-center p-2 rounded-lg bg-base-200/50">
                     <div class="text-xs opacity-50">ET₀ semaine</div>
                     <div class="text-lg font-bold">{{ report.watering.weekly_et0|floatformat:0 }}</div>
                     <div class="text-xs opacity-40">mm</div>
                   </div>
-                  <div class="text-center p-2 bg-base-200/50 rounded-lg">
+                  <div class="text-center p-2 rounded-lg bg-base-200/50">
                     <div class="text-xs opacity-50">Pluies</div>
                     <div class="text-lg font-bold text-info">{{ report.watering.weekly_precip|floatformat:0 }}</div>
                     <div class="text-xs opacity-40">mm</div>
                   </div>
-                  <div class="text-center p-2 bg-base-200/50 rounded-lg">
+                  <div class="text-center p-2 rounded-lg bg-base-200/50">
                     <div class="text-xs opacity-50">Besoin</div>
                     <div class="text-lg font-bold">{{ report.watering.weekly_need|floatformat:0 }}</div>
                     <div class="text-xs opacity-40">mm</div>
@@ -168,28 +165,7 @@
           <!-- Advice cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             {% for advice in report.advices %}
-              <div class="card bg-base-100 shadow-sm border-l-4
-                {% if advice.status.value == 'ok' %}
-                  
-                  border-success
-
-
-                {% elif advice.status.value == 'info' %}
-                  
-                  border-info
-
-
-                {% elif advice.status.value == 'warn' %}
-                  
-                  border-warning
-
-
-                {% elif advice.status.value == 'danger' %}
-                  
-                  border-error
-
-
-                {% endif %}">
+              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}border-success{% elif advice.status.value == 'info' %}border-info{% elif advice.status.value == 'warn' %}border-warning{% elif advice.status.value == 'danger' %}border-error{% endif %}">
                 <div class="card-body p-4">
                   <div class="flex items-start gap-2">
                     <span class="text-xl">{{ advice.icon }}</span>

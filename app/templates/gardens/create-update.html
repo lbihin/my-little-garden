@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container mx-auto px-4 py-8 max-w-lg">
+  <div class="container mx-auto px-4 py-8 max-w-2xl">
     <!-- Breadcrumb -->
     <div class="breadcrumbs text-sm mb-4">
       <ul>
@@ -70,82 +70,93 @@
           <div class="divider">🚿 Profil d'arrosage</div>
           <p class="text-xs opacity-50 mb-4">Choisissez une stratégie d'arrosage. Elle détermine les seuils et la fréquence des recommandations.</p>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-            <!-- Standard -->
-            <div>
-              <input type="radio" name="watering_profile" value="standard" id="profile-standard" class="peer hidden" {% if form.watering_profile.value == "standard" or not form.watering_profile.value %}checked{% endif %} />
-              <label for="profile-standard" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
-                <div class="card-body p-4">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl">🌿</span>
-                    <h4 class="font-semibold">Standard</h4>
-                    <span class="badge badge-sm badge-outline ml-auto">70 %</span>
+          <input type="hidden" name="watering_profile" id="watering-profile-input" value="{{ form.watering_profile.value|default:'standard' }}" />
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" id="profile-grid">
+            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="standard" onclick="selectProfile('standard')">
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">🌿</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Standard</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">70 %</span>
                   </div>
-                  <p class="text-xs opacity-60">Beau jardin, arrosage équilibré. Remplace 70 % de l'évapotranspiration.</p>
+                  <p class="text-xs opacity-50 mt-1">Beau jardin, arrosage équilibré. Remplace 70 % de l'ET₀.</p>
                 </div>
-              </label>
+              </div>
             </div>
 
-            <!-- Éco-responsable -->
-            <div>
-              <input type="radio" name="watering_profile" value="eco" id="profile-eco" class="peer hidden" {% if form.watering_profile.value == "eco" %}checked{% endif %} />
-              <label for="profile-eco" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
-                <div class="card-body p-4">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl">💧</span>
-                    <h4 class="font-semibold">Éco-responsable</h4>
-                    <span class="badge badge-sm badge-outline ml-auto">60 %</span>
+            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="eco" onclick="selectProfile('eco')">
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">💧</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Éco-responsable</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">60 %</span>
                   </div>
-                  <p class="text-xs opacity-60">Économe en eau, gazon soigné. Arrosage ciblé, profond et espacé.</p>
+                  <p class="text-xs opacity-50 mt-1">Économe en eau, gazon soigné. Arrosage ciblé et espacé.</p>
                 </div>
-              </label>
+              </div>
             </div>
 
-            <!-- Résilient -->
-            <div>
-              <input type="radio" name="watering_profile" value="resilient" id="profile-resilient" class="peer hidden" {% if form.watering_profile.value == "resilient" %}checked{% endif %} />
-              <label for="profile-resilient" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
-                <div class="card-body p-4">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl">🌾</span>
-                    <h4 class="font-semibold">Résilient</h4>
-                    <span class="badge badge-sm badge-outline ml-auto">30 %</span>
+            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="resilient" onclick="selectProfile('resilient')">
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">🌾</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Résilient</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">30 %</span>
                   </div>
-                  <p class="text-xs opacity-60">Accepte la dormance estivale. Le gazon jaunit mais reverdit naturellement.</p>
+                  <p class="text-xs opacity-50 mt-1">Accepte la dormance estivale. Le gazon jaunit mais reverdit après.</p>
                 </div>
-              </label>
+              </div>
             </div>
 
-            <!-- Laisser-faire -->
-            <div>
-              <input type="radio" name="watering_profile" value="laissez_faire" id="profile-laissez_faire" class="peer hidden" {% if form.watering_profile.value == "laissez_faire" %}checked{% endif %} />
-              <label for="profile-laissez_faire" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
-                <div class="card-body p-4">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl">🍃</span>
-                    <h4 class="font-semibold">Laisser-faire</h4>
-                    <span class="badge badge-sm badge-outline ml-auto">0 %</span>
+            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="laissez_faire" onclick="selectProfile('laissez_faire')">
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">🍃</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Laisser-faire</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">0 %</span>
                   </div>
-                  <p class="text-xs opacity-60">Aucun arrosage. La nature décide, vous recevez seulement des observations.</p>
+                  <p class="text-xs opacity-50 mt-1">Aucun arrosage. La nature décide, vous observez seulement.</p>
                 </div>
-              </label>
+              </div>
             </div>
 
-            <!-- Greenkeeper pro -->
-            <div>
-              <input type="radio" name="watering_profile" value="pro" id="profile-pro" class="peer hidden" {% if form.watering_profile.value == "pro" %}checked{% endif %} />
-              <label for="profile-pro" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
-                <div class="card-body p-4">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl">⛳</span>
-                    <h4 class="font-semibold">Greenkeeper pro</h4>
-                    <span class="badge badge-sm badge-outline ml-auto">100 %</span>
+            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md sm:col-span-2" data-profile="pro" onclick="selectProfile('pro')">
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">⛳</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Greenkeeper pro</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">100 %</span>
                   </div>
-                  <p class="text-xs opacity-60">Gazon de golf, tolérance zéro. Remplacement intégral de l'évapotranspiration.</p>
+                  <p class="text-xs opacity-50 mt-1">Gazon de golf, tolérance zéro. Remplacement intégral de l'évapotranspiration.</p>
                 </div>
-              </label>
+              </div>
             </div>
           </div>
+
+          <script>
+            function selectProfile(profile) {
+              document.getElementById('watering-profile-input').value = profile;
+              document.querySelectorAll('.profile-card').forEach(function(card) {
+                if (card.dataset.profile === profile) {
+                  card.style.borderColor = 'oklch(var(--p))';
+                  card.style.backgroundColor = 'oklch(var(--p) / 0.05)';
+                } else {
+                  card.style.borderColor = '';
+                  card.style.backgroundColor = '';
+                }
+              });
+            }
+            // Initialize selection on page load
+            document.addEventListener('DOMContentLoaded', function() {
+              selectProfile(document.getElementById('watering-profile-input').value || 'standard');
+            });
+          </script>
 
           <!-- Address section -->
           <div class="divider">📍 Adresse (optionnel)</div>
