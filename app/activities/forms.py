@@ -11,6 +11,8 @@ class FertilizationForm(forms.ModelForm):
 
 class ActivityForm(forms.ModelForm):
 
+    parent_garden = forms.CharField(initial='', disabled=True)
+
     class Meta:
         model = Activity
-        fields = ('comment', )
+        fields = ('comment', 'task')

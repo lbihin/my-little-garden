@@ -7,7 +7,7 @@ app_name = 'activities'
 
 urlpatterns = [
     path('', views.ActivityListView.as_view(), name='index'),
-    path('create/', views.ActivityUpdateView.as_view(), name='create_activity')
+    path('create/', views.ActivityFormView.as_view(), name='create_activity')
 ]
 
 htmx_urlpatterns = [

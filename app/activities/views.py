@@ -1,8 +1,8 @@
 # Create your views here.
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
-from django.views.generic import DetailView, UpdateView
+from django.urls import reverse_lazy, reverse
+from django.views.generic import DetailView, CreateView
 from django.views.generic import ListView
 
 from activities.forms import ActivityForm
@@ -34,8 +34,19 @@ class ActivityDescriptionView(LoginRequiredMixin, DetailView):
     context_object_name = 'activity'
 
 
-class ActivityUpdateView(LoginRequiredMixin, UpdateView):
-    model = Activity
-    form_class = ActivityForm
+class ActivityFormView(LoginRequiredMixin, CreateView):
     template_name = 'activities/create-update.html'
-    success_url = reverse_lazy('activities:index')
+    form_class = ActivityForm
+
+    def get_success_url(self):
+        garden_slug = self.object.garden.slug
+        return reverse('activities:index', kwargs={'slug': garden_slug})
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['garden'] = Garden.objects.get(slug=self.kwargs['garden_slug'])
+        return data
