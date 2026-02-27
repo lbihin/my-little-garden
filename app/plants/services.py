@@ -3,122 +3,62 @@ Plant identification and species search services.
 
 - PlantNet Identify API (image-based identification, free tier: 500 calls/day)
   API docs: https://my.plantnet.org/
-- GBIF Species Suggest API (name-based search, free, no key needed)
-  API docs: https://www.gbif.org/developer/species
-- GBIF Species Media API (photos for species, free, no key needed)
+- iNaturalist Taxa Autocomplete API (name-based search with photos, free)
+  API docs: https://api.inaturalist.org/v1/docs/
 """
 
 import logging
-from pathlib import Path
 
 import httpx
 
 logger = logging.getLogger(__name__)
 
 PLANTNET_API_URL = "https://my-api.plantnet.org/v2/identify/all"
-GBIF_SUGGEST_URL = "https://api.gbif.org/v1/species/suggest"
-GBIF_MEDIA_URL = "https://api.gbif.org/v1/species/{key}/media"
+INAT_AUTOCOMPLETE_URL = "https://api.inaturalist.org/v1/taxa/autocomplete"
+INAT_TAXA_URL = "https://api.inaturalist.org/v1/taxa/{taxon_id}"
 TIMEOUT = 15  # seconds
 
-
-# ─── Name-based search (GBIF) ────────────────────────────────────────
-
-
-def _fetch_species_media(gbif_key: int) -> list[dict]:
-    """Fetch photos for a GBIF species key, grouped by type when possible."""
-    try:
-        response = httpx.get(
-            GBIF_MEDIA_URL.format(key=gbif_key),
-            params={"limit": 12},
-            timeout=TIMEOUT,
-        )
-        response.raise_for_status()
-    except (httpx.HTTPStatusError, httpx.RequestError):
-        return []
-
-    data = response.json()
-    results = data.get("results", [])
-
-    photos = []
-    for item in results:
-        url = item.get("identifier", "")
-        if not url or not url.startswith("http"):
-            continue
-        # Try to detect organ type from description/title
-        desc = (item.get("description", "") or "").lower()
-        title = (item.get("title", "") or "").lower()
-        combined = f"{desc} {title}"
-
-        if any(w in combined for w in ("leaf", "feuille", "leaves", "foliage")):
-            organ = "leaf"
-            label = "🍃 Feuille"
-        elif any(w in combined for w in ("flower", "fleur", "bloom", "blossom")):
-            organ = "flower"
-            label = "🌸 Fleur"
-        elif any(w in combined for w in ("bark", "trunk", "tronc", "écorce", "stem")):
-            organ = "bark"
-            label = "🪵 Tronc"
-        elif any(w in combined for w in ("fruit", "seed", "graine")):
-            organ = "fruit"
-            label = "🍎 Fruit"
-        elif any(w in combined for w in ("habit", "whole", "plant", "plante", "general")):
-            organ = "habit"
-            label = "🌿 Plante entière"
-        else:
-            organ = "other"
-            label = "📷 Photo"
-
-        photos.append({"url": url, "organ": organ, "label": label})
-
-    # Deduplicate by organ — keep max 1 per organ type, plus up to 2 "other"
-    seen_organs = set()
-    deduped = []
-    others = 0
-    for p in photos:
-        if p["organ"] == "other":
-            if others < 2:
-                deduped.append(p)
-                others += 1
-        elif p["organ"] not in seen_organs:
-            seen_organs.add(p["organ"])
-            deduped.append(p)
-
-    # If no organ-classified photos, take first 4 generic ones
-    if not deduped and photos:
-        deduped = photos[:4]
-
-    return deduped[:6]
+# iNaturalist Plantae kingdom taxon ID
+INAT_PLANTAE_TAXON_ID = 47126
 
 
-def search_species(query: str, include_media: bool = False) -> dict:
+# ─── Name-based search (iNaturalist) ─────────────────────────────────
+
+
+def search_species(query: str) -> dict:
     """
-    Search for plant species by common or scientific name using GBIF.
+    Search for plant species by common or scientific name using iNaturalist.
+
+    Returns species with photos (default_photo) and French common names in a
+    single API call.  Much richer than GBIF for visual identification.
 
     Args:
-        query: Search text (e.g. "lavande", "Lavandula").
-        include_media: If True, fetch photos for each result (slower).
+        query: Search text — works with French names ("lavande") and Latin
+               names ("Lavandula").
 
     Returns:
-        dict with keys: success, results (list of species dicts).
+        dict with keys: success, results (list of species dicts with photo_url).
     """
     if not query or len(query.strip()) < 2:
         return {"success": True, "results": []}
 
     params = {
         "q": query.strip(),
-        "limit": 8,
-        "rank": "SPECIES",
-        "highertaxonKey": 6,  # Plantae kingdom key in GBIF
+        "per_page": 8,
+        "rank": "species",
+        "locale": "fr",
+        "is_active": True,
+        "taxon_id": INAT_PLANTAE_TAXON_ID,
     }
 
     try:
-        response = httpx.get(GBIF_SUGGEST_URL, params=params, timeout=TIMEOUT)
+        response = httpx.get(INAT_AUTOCOMPLETE_URL, params=params, timeout=TIMEOUT)
         response.raise_for_status()
     except httpx.HTTPStatusError as exc:
-        logger.error("GBIF HTTP error: %s", exc)
+        logger.error("iNaturalist HTTP error: %s", exc)
         return {"success": False, "error": f"Erreur API : {exc.response.status_code}"}
     except httpx.RequestError as exc:
-        logger.error("GBIF request error: %s", exc)
+        logger.error("iNaturalist request error: %s", exc)
         return {
             "success": False,
             "error": "Impossible de contacter le service de recherche.",
@@ -126,28 +66,38 @@ def search_species(query: str, include_media: bool = False) -> dict:
 
     data = response.json()
 
-    # Deduplicate by canonical name (GBIF can return synonyms of the same species)
+    # Deduplicate by scientific name
     seen = set()
     results = []
-    for item in data:
-        canonical = item.get("canonicalName", "")
-        if not canonical or canonical in seen:
+    for item in data.get("results", []):
+        name = item.get("name", "")
+        if not name or name in seen:
             continue
-        seen.add(canonical)
+        seen.add(name)
 
-        species_data = {
-            "scientific_name": canonical,
-            "family": item.get("family", ""),
-            "genus": item.get("genus", ""),
-            "gbif_key": item.get("key"),
-            "photos": [],
-        }
+        # Extract photo URL (medium = ~500px, square = 75×75 thumbnail)
+        default_photo = item.get("default_photo") or {}
+        photo_url = default_photo.get("medium_url", "")
+        square_url = default_photo.get("square_url", "")
 
-        # Fetch media if requested
-        if include_media and item.get("key"):
-            species_data["photos"] = _fetch_species_media(item["key"])
+        # Extract ancestors to get family name
+        ancestors = item.get("ancestors", [])
+        family = ""
+        for a in ancestors:
+            if a.get("rank") == "family":
+                family = a.get("name", "")
+                break
 
-        results.append(species_data)
+        results.append(
+            {
+                "scientific_name": name,
+                "common_name": item.get("preferred_common_name", ""),
+                "family": family,
+                "photo_url": photo_url,
+                "square_url": square_url,
+                "inat_id": item.get("id"),
+            }
+        )
 
     return {"success": True, "results": results}
 

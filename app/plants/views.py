@@ -218,13 +218,13 @@ def plant_identify_view(request, garden_slug):
 
 @login_required
 def plant_search_htmx_view(request, garden_slug):
-    """HTMX endpoint — live species search by name via GBIF."""
+    """HTMX endpoint — live species search by name via iNaturalist."""
     from plants.services import search_species
 
     garden = get_object_or_404(Garden, slug=garden_slug, created_by=request.user)
     query = request.GET.get("q", "").strip()
 
-    result = search_species(query, include_media=True)
+    result = search_species(query)
     return render(
         request,
         "plants/partials/search-results.html",

@@ -1,48 +1,45 @@
 {% if query and query|length >= 2 %}
   {% if result.success and result.results %}
     <p class="text-sm opacity-50 mb-3">{{ result.results|length }} résultat{{ result.results|pluralize }} pour « {{ query }} »</p>
-    <div class="space-y-4">
+    <div class="space-y-3">
       {% for species in result.results %}
-        <div class="rounded-xl bg-base-200/50 hover:bg-base-200 transition-colors overflow-hidden">
-          {# ── Photos row ── #}
-          {% if species.photos %}
-            <div class="flex gap-1 overflow-x-auto p-2 pb-0">
-              {% for photo in species.photos %}
-                <div class="flex-shrink-0">
-                  <div class="tooltip" data-tip="{{ photo.label }}">
-                    <img src="{{ photo.url }}"
-                         alt="{{ photo.label }}"
-                         class="w-20 h-20 object-cover rounded-lg border border-base-300"
-                         loading="lazy"
-                         onerror="this.parentElement.parentElement.remove()" />
-                  </div>
-                  <div class="text-center mt-0.5">
-                    <span class="text-[10px] opacity-50">{{ photo.label }}</span>
-                  </div>
-                </div>
-              {% endfor %}
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-base-200/50 hover:bg-base-200 transition-colors">
+          {# ── Photo ── #}
+          {% if species.photo_url %}
+            <img src="{{ species.square_url|default:species.photo_url }}"
+                 alt="{{ species.common_name|default:species.scientific_name }}"
+                 class="w-16 h-16 rounded-lg object-cover border border-base-300 flex-shrink-0"
+                 loading="lazy"
+                 onerror="this.style.display='none'" />
+          {% else %}
+            <div class="w-16 h-16 rounded-lg bg-base-300/50 flex items-center justify-center flex-shrink-0">
+              <span class="text-2xl opacity-30">🌿</span>
             </div>
           {% endif %}
 
-          {# ── Info + action row ── #}
-          <div class="flex items-center justify-between p-3 pt-2">
-            <div class="flex-1 min-w-0">
+          {# ── Info ── #}
+          <div class="flex-1 min-w-0">
+            {% if species.common_name %}
+              <div class="font-semibold text-sm truncate">{{ species.common_name }}</div>
+              <div class="text-xs italic opacity-60 truncate">{{ species.scientific_name }}</div>
+            {% else %}
               <div class="font-semibold text-sm truncate">{{ species.scientific_name }}</div>
-              <div class="text-xs opacity-50">
-                {% if species.family %}Famille : {{ species.family }}{% endif %}
-                {% if species.genus %}· Genre : {{ species.genus }}{% endif %}
-              </div>
-            </div>
-            <form method="post" action="{% url 'gardens:plants:identify-add' garden_slug=garden.slug %}">
-              {% csrf_token %}
-              <input type="hidden" name="common_name" value="" />
-              <input type="hidden" name="scientific_name" value="{{ species.scientific_name }}" />
-              {% if species.photos.0.url %}
-                <input type="hidden" name="photo_url" value="{{ species.photos.0.url }}" />
-              {% endif %}
-              <button type="submit" class="btn btn-primary btn-xs gap-1">＋ Ajouter</button>
-            </form>
+            {% endif %}
+            {% if species.family %}
+              <div class="text-xs opacity-40 mt-0.5">Famille : {{ species.family }}</div>
+            {% endif %}
           </div>
+
+          {# ── Action ── #}
+          <form method="post" action="{% url 'gardens:plants:identify-add' garden_slug=garden.slug %}" class="flex-shrink-0">
+            {% csrf_token %}
+            <input type="hidden" name="common_name" value="{{ species.common_name }}" />
+            <input type="hidden" name="scientific_name" value="{{ species.scientific_name }}" />
+            {% if species.photo_url %}
+              <input type="hidden" name="photo_url" value="{{ species.photo_url }}" />
+            {% endif %}
+            <button type="submit" class="btn btn-primary btn-xs gap-1">＋ Ajouter</button>
+          </form>
         </div>
       {% endfor %}
     </div>
