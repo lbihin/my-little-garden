@@ -1,14 +1,25 @@
 {% extends "base.html" %}
 
+{% block title %}Déconnexion — My Little Garden{% endblock %}
+
 {% block content %}
-    {% if request.user.is_authenticated %}
-        <div>
-            <form method="POST">{% csrf_token %}
-                <p>Are you sure you want to log out?</p>
-                <button type="submit">Yes, log out.</button>
-            </form>
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="card bg-base-100 shadow-xl w-full max-w-md">
+        <div class="card-body text-center">
+            {% if request.user.is_authenticated %}
+                <h2 class="card-title text-2xl justify-center mb-4">Déconnexion</h2>
+                <p class="mb-4">Êtes-vous sûr de vouloir vous déconnecter ?</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-error btn-wide">Oui, me déconnecter</button>
+                </form>
+            {% else %}
+                <p>
+                    Vous n'êtes pas connecté.
+                    <a href="{% url 'accounts:login' %}" class="link link-primary">Se connecter ?</a>
+                </p>
+            {% endif %}
         </div>
-    {% else %}
-        <p>You´re not logged in. Would you like to <a href="{% url 'accounts:login' %}">log in</a>? </p>
-    {% endif %}
+    </div>
+</div>
 {% endblock %}

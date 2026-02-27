@@ -1,60 +1,60 @@
 {% load static %}
-{% load widget_tweaks %}
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="fr" data-theme="garden">
 <head>
     <meta charset="UTF-8">
-    <title>My Little Garden</title>
-
-    <!-- Include Font Awesome -->
-    {#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">#}
-
-    <!-- Tailwind CSS -->
-    {% include 'head/css.html' %}
-
-    <!-- Include Libraries -->
-    {% include 'head/scripts.html' %}
-
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Little Garden{% endblock %}</title>
+    <!-- DaisyUI + Tailwind CSS 4 (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- HTMX -->
+    <script defer src="https://unpkg.com/htmx.org@2.0.4"></script>
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="flex flex-col min-h-screen font-body bg-gray-50 text-gray-600">
+<body class="min-h-screen flex flex-col">
 
-<header class="bg-white">
-    <div class="flex justify-between items-center mr-5 h-16">
-
-        <div class="flex justify-center items-center">
-            <!-- Logo-->
-            <a href="{% url 'home' %}">
-                <img class="w-16 rounded-full ml-5"
-                     src="{% static 'img/logo.png' %}"
-                     alt="MyLittleGarden">
-            </a>
-            <p class="font-bold text-2xl">My Little Garden</p>
-
-        </div>
-
-        <!-- Navbar -->
+<!-- Navbar -->
+<div class="navbar bg-base-100 shadow-sm">
+    <div class="flex-1">
+        <a href="{% url 'home' %}" class="btn btn-ghost text-xl gap-2">
+            🌱 My Little Garden
+        </a>
+    </div>
+    <div class="flex-none">
         {% include 'partials/navbar.html' %}
     </div>
+</div>
 
-</header>
+<!-- Messages -->
+{% if messages %}
+<div class="container mx-auto px-4 pt-4">
+    {% for message in messages %}
+    <div role="alert" class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} mb-2">
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
-<!-- main and page content -->
-<main class="flex-grow flex flex-col">
-
-    {% block content %}
-        <h3>This will be replaced</h3>
-    {% endblock content %}
+<!-- Main content -->
+<main class="flex-1">
+    {% block content %}{% endblock %}
 </main>
 
-<footer class="h-16 text-center text-white p-8 bg-green-500">placeholder footer</footer>
+<!-- Footer -->
+<footer class="footer footer-center bg-base-200 text-base-content p-4">
+    <aside>
+        <p>My Little Garden — Suivi d'entretien de jardin</p>
+    </aside>
+</footer>
 
-
+<!-- HTMX CSRF -->
 <script>
     document.body.addEventListener('htmx:configRequest', (event) => {
         event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-    })
+    });
 </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

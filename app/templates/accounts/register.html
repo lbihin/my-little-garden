@@ -1,16 +1,47 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block title %}Inscription — My Little Garden{% endblock %}
 
-    {% if not request.user.is_authenticated %}
-    <div>
-        <form method="POST">{% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Register</button>
-        </form>
-    <p>Already have an account? Please <a href="{% url 'accounts:login' %}">log in</a> </p>
+{% block content %}
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="card bg-base-100 shadow-xl w-full max-w-md">
+        <div class="card-body">
+            {% if not request.user.is_authenticated %}
+                <h2 class="card-title text-2xl justify-center mb-4">Créer un compte</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <fieldset class="fieldset mb-3">
+                        <legend class="fieldset-legend">{{ field.label }}</legend>
+                        <input type="{{ field.field.widget.input_type }}"
+                               name="{{ field.html_name }}"
+                               value="{{ field.value|default:'' }}"
+                               class="input input-bordered w-full {% if field.errors %}input-error{% endif %}"
+                               {% if field.field.required %}required{% endif %}>
+                        {% if field.help_text %}
+                            <p class="label text-xs opacity-60">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <p class="label text-error text-sm">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </fieldset>
+                    {% endfor %}
+                    <div class="card-actions justify-end mt-4">
+                        <button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
+                    </div>
+                </form>
+                <div class="divider">OU</div>
+                <p class="text-center text-sm">
+                    Déjà un compte ?
+                    <a href="{% url 'accounts:login' %}" class="link link-primary">Se connecter</a>
+                </p>
+            {% else %}
+                <p class="text-center">
+                    Vous êtes déjà connecté.
+                    <a href="{% url 'accounts:logout' %}" class="link link-primary">Se déconnecter ?</a>
+                </p>
+            {% endif %}
+        </div>
     </div>
-    {% else %}
-    <p>You´re already logged in and cannot register. Would you like to <a href="{% url 'accounts:logout' %}">log out</a>? </p>
-    {% endif %}
-{% endblock content %}
+</div>
+{% endblock %}

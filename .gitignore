@@ -163,6 +163,6 @@ cython_debug/
 .idea/
 
 
-# CDN
-local-cdn/
+# Build outputs
+staticfiles/
 node_modules/

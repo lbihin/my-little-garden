@@ -1,33 +1,42 @@
-{% extends "gardens/details.html" %}
-{% load widget_tweaks %}
-{% block garden_detail_content %}
-    <div class="rounded-md border-gray-100 border-2 bg-white">
-        <div class="grid grid-cols-3 bg-green-600 mb-3 mt-3 text-white p-2">
-            <a class="cursor-pointer" href="{% url 'gardens:activities:index' garden.slug%}">
-                <svg class="w-5 h-5" data-slot="icon" fill="currentColor" viewBox="0 0 16 16"
-                     xmlns="http://www.w3.org/2000/svg"
-                     aria-hidden="true">
-                    <path clip-rule="evenodd" fill-rule="evenodd"
-                          d="M14 8a.75.75 0 0 1-.75.75H4.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 1.06L4.56 7.25h8.69A.75.75 0 0 1 14 8Z"></path>
-                </svg>
-            </a>
-            <span class="text-center font-bold uppercase">
-                {% if not activity %}
-                    Nouvelle Activité
-                {% endif %}
-                </span>
-        </div>
-        <form class="grid grid-cols-1 items-center" method="post">
-            {% csrf_token %}
-            {% render_field form.comment class+="ml-2 mr-2 mt-2 border-gray-200" %}
-            <div>
+{% extends "base.html" %}
 
-            {% render_field form.task class+="h-48 m-2 border-gray-200" %}
-            </div>
-            <input type="submit"
-                   value="Enregistrer"
-                   class="cursor-pointer p-2 text-green-700 hover:text-white text-center border-green-700 border-2 hover:border-white rounded-full bg-white hover:bg-green-700 text-sm mr-32 ml-32 mb-4">
-        </form>
+{% block title %}Nouvelle Activité — {{ garden.name }} — My Little Garden{% endblock %}
 
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-lg">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-4">
+        <ul>
+            <li><a href="{% url 'gardens:list' %}">Jardins</a></li>
+            <li><a href="{% url 'gardens:detail' garden.slug %}">{{ garden.name }}</a></li>
+            <li>Nouvelle activité</li>
+        </ul>
     </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">Nouvelle Activité</h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <fieldset class="fieldset mb-4">
+                    <legend class="fieldset-legend">Commentaire</legend>
+                    <textarea name="comment"
+                              class="textarea textarea-bordered w-full h-40"
+                              placeholder="Décrivez l'activité réalisée…">{{ form.comment.value|default:'' }}</textarea>
+                    {% if form.comment.errors %}
+                        <p class="label text-error text-sm">{{ form.comment.errors.0 }}</p>
+                    {% endif %}
+                </fieldset>
+
+                <div class="card-actions justify-end">
+                    <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}"
+                       class="btn btn-ghost">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

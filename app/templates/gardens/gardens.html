@@ -1,60 +1,37 @@
 {% extends "base.html" %}
-{% load static %}
+
+{% block title %}Mes Jardins — My Little Garden{% endblock %}
 
 {% block content %}
-    <div class="ml-4 mr-4">
-        <div class="flex justify-between items-center">
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <h1 class="text-3xl font-bold">Mes Jardins</h1>
 
-            <h1 class="m-auto p-4 font-bold text-3xl uppercase">
-                Mes Jardins
-            </h1>
-
-            <!-- Search Bar -->
-            <form id="search-garden-form" class="m-2">
-                <label for="card-search"
-                       class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 start-0 flex items-center ps-3">
-                        <button type="submit" class="cursor-pointer">
-                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <input type="search" name="garden-search" id="cardSearch"
-                           hx-get="{% url 'gardens:search' %}" hx-trigger="keyup changed delay:200ms" hx-swap="innerHTML"
-                           hx-target="#garden-list"
-                           class="block w-full h-2 p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                           placeholder="Search garden...">
-                </div>
-            </form>
-
-            <!-- Add Garden button -->
-            <a href="{% url 'gardens:create' %}"
-               class="cursor-pointer p-2 text-green-700 hover:text-white border-green-700 border-2 hover:border-white rounded-full bg-white hover:bg-green-700 text-sm flex items-center gap-1">
-                <svg class="w-4 h-4" data-slot="icon" fill="currentColor" viewBox="0 0 16 16"
-                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5v-3.5Z"></path>
-                </svg>
-                <span class="uppercase font-bold text-xs">Ajouter jardin</span>
-
-            </a>
+        <!-- Search -->
+        <div class="form-control">
+            <input type="search"
+                   name="garden-search"
+                   placeholder="Rechercher un jardin…"
+                   class="input input-bordered w-64"
+                   hx-get="{% url 'gardens:search' %}"
+                   hx-trigger="keyup changed delay:250ms"
+                   hx-swap="innerHTML"
+                   hx-target="#garden-list">
         </div>
 
-        <div class="htmx-indicator">Updating...</div>
-        <!-- Garden cards -->
-        <div id="garden-list">
-
-            {% include 'gardens/partials/cards.html' %}
-        </div>
+        <!-- Add button -->
+        <a href="{% url 'gardens:create' %}" class="btn btn-primary gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Ajouter un jardin
+        </a>
     </div>
 
-    <aside>
-        {#    TODO: Will contains the information related to the user#}
-    </aside>
-
-    <script src="{% static 'js/gardens/gardens.js' %}"></script>
-{% endblock content %}
+    <!-- Garden cards -->
+    <div id="garden-list">
+        {% include 'gardens/partials/cards.html' %}
+    </div>
+</div>
+{% endblock %}

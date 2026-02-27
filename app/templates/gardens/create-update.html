@@ -1,52 +1,63 @@
 {% extends "base.html" %}
 
-{% load widget_tweaks %}
+{% block title %}{% if garden %}Modifier {{ garden.name }}{% else %}Nouveau Jardin{% endif %} — My Little Garden{% endblock %}
 
 {% block content %}
+<div class="container mx-auto px-4 py-8 max-w-lg">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-4">
+        <ul>
+            <li><a href="{% url 'gardens:list' %}">Jardins</a></li>
+            <li>{% if garden %}{{ garden.name }}{% else %}Nouveau{% endif %}</li>
+        </ul>
+    </div>
 
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">
+                {% if garden %}Modifier « {{ garden.name }} »{% else %}Nouveau Jardin{% endif %}
+            </h2>
 
-    <main class="grid grid-cols-1 place-items-center">
-        <div class="justify-center w-5/12 h-full text-sm">
-            <div class="grid grid-cols-3 bg-green-600 mb-3 mt-3 text-white p-2">
+            {% url 'gardens:length-name' as len_name_url %}
+            <form method="post">
+                {% csrf_token %}
 
-                <a class="cursor-pointer" href="{% url 'gardens:list' %}">
-                    <svg class="w-5 h-5" data-slot="icon" fill="currentColor" viewBox="0 0 16 16"
-                         xmlns="http://www.w3.org/2000/svg"
-                         aria-hidden="true">
-                        <path clip-rule="evenodd" fill-rule="evenodd"
-                              d="M14 8a.75.75 0 0 1-.75.75H4.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 1.06L4.56 7.25h8.69A.75.75 0 0 1 14 8Z"></path>
-                    </svg>
-                </a>
-                <span class="text-center font-bold uppercase">
-                {% if garden %}
-
-                    {{ garden.name }}
-                {% else %}
-                    Nouveau Jardin
-                {% endif %}
-                </span>
-
-            </div>
-            <div class="rounded-md border-gray-100 border-2 bg-white">
-                {% url 'gardens:length-name' as len_name_url %}
-                <form class="grid grid-cols-1 items-center" method="post">
-                    {% csrf_token %}
-                    {% render_field form.name class+="ml-2 mr-2 mt-2 border-gray-200" maxlength=form.name.field.max_length hx-trigger="load, keyup changed delay:70ms" hx-post=len_name_url hx-swap="innerHTML" hx-target="#charFieldCount" id="gardenNameField" %}
+                <!-- Name field -->
+                <fieldset class="fieldset mb-4">
+                    <legend class="fieldset-legend">Nom du jardin</legend>
+                    <input type="text"
+                           name="name"
+                           value="{{ form.name.value|default:'' }}"
+                           maxlength="{{ form.name.field.max_length }}"
+                           class="input input-bordered w-full {% if form.name.errors %}input-error{% endif %}"
+                           hx-trigger="keyup changed delay:100ms"
+                           hx-post="{{ len_name_url }}"
+                           hx-swap="innerHTML"
+                           hx-target="#char-count"
+                           required>
                     {% if form.name.errors %}
-                        <div class="text-red-600 text-xs text-right mr-4">
-                            {{ form.name.errors.0 }}
-                        </div>
+                        <p class="label text-error text-sm">{{ form.name.errors.0 }}</p>
                     {% endif %}
-                    <p class="text-xs text-right mr-5" id="charFieldCount"> 0 / {{ form.name.field.max_length }} caractères</p>
-                    {% render_field form.description class+="h-48 m-2 border-gray-200" %}
-                    <input type="submit"
-                           value="Enregistrer les modifications"
-                           class="cursor-pointer p-2 text-green-700 hover:text-white text-center border-green-700 border-2 hover:border-white rounded-full bg-white hover:bg-green-700 text-sm mr-32 ml-32 mb-4">
-                </form>
-            </div>
+                    <p class="label text-xs opacity-50" id="char-count">
+                        0 / {{ form.name.field.max_length }} caractères
+                    </p>
+                </fieldset>
+
+                <!-- Description field -->
+                <fieldset class="fieldset mb-4">
+                    <legend class="fieldset-legend">Description</legend>
+                    <textarea name="description"
+                              class="textarea textarea-bordered w-full h-40"
+                              placeholder="Décrivez votre jardin…">{{ form.description.value|default:'' }}</textarea>
+                </fieldset>
+
+                <!-- Submit -->
+                <div class="card-actions justify-end">
+                    <a href="{% url 'gardens:list' %}" class="btn btn-ghost">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
         </div>
-    </main>
+    </div>
+</div>
 {% endblock %}

@@ -1,19 +1,12 @@
-{% load widget_tweaks %}
-
 {% if garden.has_address %}
-    <div>
-        <address>
-            <p>{% render_field address.street %}</p>
-            <p>
-                {% if address.state %}
-                    {% render_field address.state %}, {% render_field address.postal_code %} -
-                    {% render_field address.city %}
-                {% else %}
-                    {% render_field address.postal_code %} - {% render_field address.city %}
-                {% endif %}
-            </p>
-        </address>
-    </div>
+<address class="not-italic text-sm">
+    {% if address.street %}<p>{{ address.street }}</p>{% endif %}
+    <p>
+        {% if address.state %}{{ address.state }}, {% endif %}
+        {{ address.postal_code }} — {{ address.city }}
+    </p>
+    {% if address.country %}<p>{{ address.country }}</p>{% endif %}
+</address>
 {% else %}
-    No address available.
+<p class="text-sm opacity-50 italic">Aucune adresse renseignée.</p>
 {% endif %}

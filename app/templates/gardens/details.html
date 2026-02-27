@@ -1,59 +1,53 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}{{ garden.name }} — My Little Garden{% endblock %}
 
 {% block content %}
-    <div class="flex-grow flex flex-row">
-
-        <ol class="cursor-pointer bg-slate-800 text-white p-4 w-36">
-            <li class="flex justify-start items-center">
-                <svg class="w-6 h-6 pr-2" data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor"
-                     viewBox="0 0 24 24"
-                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path>
-                </svg>
-                <a href="{% url 'gardens:detail' slug=garden.slug %}">Home</a>
+<div class="flex flex-1">
+    <!-- Sidebar -->
+    <aside class="menu bg-base-200 w-56 p-4">
+        <li class="menu-title">{{ garden.name }}</li>
+        <ul>
+            <li>
+                <a href="{% url 'gardens:detail' slug=garden.slug %}"
+                   class="{% if request.resolver_match.url_name == 'detail' %}active{% endif %}">
+                    🏠 Tableau de bord
+                </a>
             </li>
-            <li class="flex justify-start items-center">
-                <svg class="w-6 h-6 pr-2" data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor"
-                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 0-6.23-.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"></path>
-                </svg>
-                <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">Entretien</a>
+            <li>
+                <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">
+                    🧪 Entretien
+                </a>
             </li>
-            <li class="flex justify-start items-end">
-                <svg class="w-6 h-6 pr-2" data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor"
-                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"></path>
-                </svg>
-                <a>Calendrier</a>
-            </li>
-        </ol>
+            <li class="disabled"><a>📅 Calendrier</a></li>
+        </ul>
+    </aside>
 
-        <div id="detail-content" class="w-full bg-gray-100">
-            <div class="rounded-md bg-gray-100 p-2">
-
-                <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
-                <p class="text-xs font-light italic">
-                    <span>Dernière mise à jour: {{ garden.get_last_update }}</span>
-                </p>
-                <p>{% include 'gardens/partials/garden-address.html' %}</p>
-            </div>
-
-            {% block garden_detail_content %}
-                <div>
-                    <h1 class="font-bold text-3xl m-4">Tableau de bord</h1>
-                </div>
-                <div class="min-h-full">
-                {#                # TODO: For Home Implement Stepper with form https://flowbite.com/docs/components/stepper/#}
-                <div class="border-t-2 border-gray-600 m-2">
-                    <h2 class="font-bold text-sm">Voici votre description concernant le jardin</h2>
-                    <div>{{ garden.description }}</div>
-                </div>
-            {% endblock garden_detail_content %}
+    <!-- Main area -->
+    <div class="flex-1 p-6">
+        <div class="mb-4">
+            <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
+            <p class="text-xs opacity-50 italic">Dernière mise à jour : {{ garden.get_last_update }}</p>
+            <div class="mt-2">
+                {% include 'gardens/partials/garden-address.html' %}
             </div>
         </div>
 
+        {% block garden_detail_content %}
+        <div class="divider"></div>
+        <h2 class="text-xl font-bold mb-4">Tableau de bord</h2>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title text-sm">Description du jardin</h3>
+                <p>{{ garden.description|default:"Aucune description." }}</p>
+                {% if garden.surface %}
+                <div class="mt-2">
+                    <span class="badge badge-outline">{{ garden.surface }} m²</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endblock garden_detail_content %}
     </div>
+</div>
 {% endblock %}

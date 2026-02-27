@@ -1,29 +1,37 @@
-<div class="flex justify-between m-4">
-    <table class="table-auto basis-2/3">
-        <tr>
-            <td class="p-2"><span
-                    class="font-bold">Date d´exécution: </span><span>{{ activity.get_creation_date }}</span></td>
-            <td><span class="font-bold">Type: </span><span>{{ activity.get_activity_display }}</span></td>
-        </tr>
-        <tr>
-            <td class="p-2"><span class="font-bold">Mis à jour: </span><span>{{ activity.get_updated_date }}</span></td>
+<div class="card card-border bg-base-200 p-4">
+    <h3 class="font-bold mb-3">Activité #{{ activity.pk }}
+        <span class="badge badge-sm badge-neutral ml-2">{{ activity.get_creation_date }}</span>
+    </h3>
 
-            <td><span class="font-bold">Quantité: </span><span>{{ activity.get_quantity }}</span></td>
-        </tr>
-        <tr>
-            <td></td>
-            <td class="text-xs italic">
-                {% for element, qty in activity.get_base_element_quantity.items %}
-                <span>{{ element }}:{{ qty }}</span>
-               {% endfor %}
-            </td>
-
-        </tr>
-        <!-- more rows as needed -->
-    </table>
-    <div class="basis-1/3 border rounded-md p-2">
-
-        <p class="font-bold">Remarques: </p>
+    {% if activity.comment %}
+    <div class="mb-3">
+        <p class="text-sm font-semibold opacity-60">Commentaire</p>
         <p>{{ activity.comment }}</p>
     </div>
+    {% endif %}
+
+    {% if activity.task %}
+    <div class="mb-3">
+        <p class="text-sm font-semibold opacity-60">Fertilisation</p>
+        <p>{{ activity.task }}</p>
+        {% if activity.task.fertilizer %}
+        <p class="text-xs opacity-50 mt-1">{{ activity.task.fertilizer }}</p>
+        {% endif %}
+    </div>
+
+    {% with npk=activity.get_base_element_quantity %}
+    {% if npk %}
+    <div class="mb-3">
+        <p class="text-sm font-semibold opacity-60">Répartition NPK</p>
+        <div class="flex gap-3 mt-1">
+            {% for element, qty in npk.items %}
+            <div class="badge badge-outline">{{ element }}: {{ qty }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+
+    <p class="text-xs opacity-40 mt-2">Mis à jour {{ activity.since_update }}</p>
 </div>
