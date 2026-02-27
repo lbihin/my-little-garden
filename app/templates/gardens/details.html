@@ -94,7 +94,7 @@
                 <div class="mb-4">
                   <div class="flex justify-between text-xs opacity-60 mb-1">
                     <span>Pluies : {{ report.watering.weekly_precip|floatformat:0 }} mm</span>
-                    <span>Besoin : {{ report.watering.weekly_need|floatformat:0 }} mm ({{ report.watering.et0_replacement_pct }}% ET₀)</span>
+                    <span>Besoin : {{ report.watering.weekly_need|floatformat:0 }} mm ({{ report.watering.et0_replacement_pct }}% de l'évaporation compensée)</span>
                   </div>
                   <div class="w-full bg-base-200 rounded-full h-4 overflow-hidden">
                     {% if report.watering.weekly_need > 0 %}
@@ -124,26 +124,26 @@
                 <!-- Stats row -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div class="text-center p-2 rounded-lg bg-base-200/50">
-                    <div class="text-xs opacity-50">ET₀ semaine</div>
+                    <div class="text-xs opacity-50" title="Évapotranspiration de référence (ET₀) — l'eau que le sol et le gazon perdent naturellement par évaporation et transpiration">☀️ Évaporation</div>
                     <div class="text-lg font-bold">{{ report.watering.weekly_et0|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm</div>
+                    <div class="text-xs opacity-40">mm / semaine</div>
                   </div>
                   <div class="text-center p-2 rounded-lg bg-base-200/50">
-                    <div class="text-xs opacity-50">Pluies</div>
+                    <div class="text-xs opacity-50">🌧️ Pluies</div>
                     <div class="text-lg font-bold text-info">{{ report.watering.weekly_precip|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm</div>
+                    <div class="text-xs opacity-40">mm / semaine</div>
                   </div>
                   <div class="text-center p-2 rounded-lg bg-base-200/50">
-                    <div class="text-xs opacity-50">Besoin</div>
+                    <div class="text-xs opacity-50" title="Quantité d'eau à apporter selon votre profil d'arrosage ({{ report.watering.et0_replacement_pct }}% de l'évaporation)">🎯 Besoin</div>
                     <div class="text-lg font-bold">{{ report.watering.weekly_need|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm</div>
+                    <div class="text-xs opacity-40">mm / semaine</div>
                   </div>
                   <div class="text-center p-2 rounded-lg {% if report.watering.weekly_deficit > 0 %}
                       bg-warning/10
                     {% else %}
                       bg-success/10
                     {% endif %}">
-                    <div class="text-xs opacity-50">Déficit</div>
+                    <div class="text-xs opacity-50">💧 Déficit</div>
                     <div class="text-lg font-bold {% if report.watering.weekly_deficit > 0 %}
                         text-warning
                       {% else %}
@@ -164,9 +164,9 @@
                 <details class="mt-2">
                   <summary class="text-xs opacity-40 cursor-pointer hover:opacity-70">Bilan 24 h détaillé</summary>
                   <div class="flex items-center gap-3 text-xs mt-2 opacity-60">
-                    <span>Précip. : {{ report.precip_last_24h|floatformat:1 }} mm</span>
+                    <span>Pluie : {{ report.precip_last_24h|floatformat:1 }} mm</span>
                     <span>−</span>
-                    <span>ET₀ : {{ report.et0_last_24h|floatformat:1 }} mm</span>
+                    <span>Évaporation : {{ report.et0_last_24h|floatformat:1 }} mm</span>
                     <span>=</span>
                     <span class="font-semibold {% if report.water_balance < 0 %}
                         text-warning

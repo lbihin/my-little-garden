@@ -138,14 +138,20 @@ class WeatherData:
         return sum(v or 0 for v in self.evapotranspiration[idx + 1 : end])
 
 
-def fetch_weather(latitude: float, longitude: float, days: int = 3) -> WeatherData:
+def fetch_weather(
+    latitude: float,
+    longitude: float,
+    forecast_days: int = 7,
+    past_days: int = 7,
+) -> WeatherData:
     """
-    Fetch weather forecast data from Open-Meteo.
+    Fetch weather data from Open-Meteo (past measured + forecast).
 
     Args:
         latitude: Garden latitude.
         longitude: Garden longitude.
-        days: Number of forecast days (1-16, default 3).
+        forecast_days: Number of forecast days (1-16, default 7).
+        past_days: Number of past days with measured data (0-92, default 7).
 
     Returns:
         WeatherData with all the time series, or an error message.
@@ -155,7 +161,8 @@ def fetch_weather(latitude: float, longitude: float, days: int = 3) -> WeatherDa
         "longitude": longitude,
         "hourly": ",".join(HOURLY_VARIABLES),
         "timezone": "auto",
-        "forecast_days": min(days, 16),
+        "forecast_days": min(forecast_days, 16),
+        "past_days": min(past_days, 92),
     }
 
     try:

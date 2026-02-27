@@ -84,7 +84,7 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
                 lat, lon = self.DEFAULT_LAT, self.DEFAULT_LON
                 context["location_source"] = "Paris (par défaut)"
 
-            weather = fetch_weather(lat, lon, days=3)
+            weather = fetch_weather(lat, lon)
             report = analyse(
                 weather,
                 profile=garden.watering_profile,

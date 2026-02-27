@@ -162,7 +162,7 @@ class TestWeatherDashboardView:
         assert resp.status_code == 200
         mock_fetch.assert_called_once()
         _, kwargs = mock_fetch.call_args
-        assert kwargs["days"] == 7
+        assert kwargs["forecast_days"] == 7
 
     @patch("weather.views.fetch_weather")
     def test_dashboard_error(self, mock_fetch, auth_client, garden):

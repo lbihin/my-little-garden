@@ -31,7 +31,7 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             context["location_source"] = "Paris (par défaut)"
 
         days = int(self.request.GET.get("days", 3))
-        weather = fetch_weather(lat, lon, days=days)
+        weather = fetch_weather(lat, lon, forecast_days=days)
         context["weather"] = weather
         context["days"] = days
 
