@@ -8,11 +8,15 @@
         <div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1">
           <span class="text-sm">👤</span>
           <span>{{ user.username }}</span>
-          <svg class="h-3 w-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          <svg class="h-3 w-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
         <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-52 p-2 shadow-lg mt-2">
           <li class="menu-title text-xs">{{ user.email|default:'Mon compte' }}</li>
-          <li><a href="{% url 'accounts:logout' %}">🚪 Déconnexion</a></li>
+          <li>
+            <a href="{% url 'accounts:logout' %}">🚪 Déconnexion</a>
+          </li>
         </ul>
       </div>
     </li>

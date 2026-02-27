@@ -131,7 +131,9 @@ def identify_plant_from_file(image_file, api_key: str) -> dict:
                 "type": "all",
                 "api-key": api_key,
             },
-            files={"images": (image_file.name, image_file.read(), image_file.content_type)},
+            files={
+                "images": (image_file.name, image_file.read(), image_file.content_type)
+            },
             data={"organs": "auto"},
             timeout=30,
         )
@@ -213,11 +215,13 @@ def _parse_plantnet_response(data: dict) -> dict:
                 "fruit": "🍎 Fruit",
                 "habit": "🌿 Plante entière",
             }
-            images.append({
-                "url": url.get("m", url.get("s", "")),  # medium or small
-                "organ": organ,
-                "label": labels.get(organ, "📷 Photo"),
-            })
+            images.append(
+                {
+                    "url": url.get("m", url.get("s", "")),  # medium or small
+                    "organ": organ,
+                    "label": labels.get(organ, "📷 Photo"),
+                }
+            )
         return images
 
     return {

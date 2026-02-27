@@ -62,7 +62,14 @@
           </fieldset>
 
           <div class="card-actions justify-end">
-            <a href="{% if plant %}{{ plant.get_absolute_url }}{% else %}{% url 'gardens:plants:list' garden_slug=garden.slug %}{% endif %}" class="btn btn-ghost">Annuler</a>
+            <a href="{% if plant %}
+                {{ plant.get_absolute_url }}
+              {% else %}
+                {% url 'gardens:plants:list' garden_slug=garden.slug %}
+              {% endif %}"
+              class="btn btn-ghost">
+              Annuler
+            </a>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>
