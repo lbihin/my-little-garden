@@ -5,7 +5,14 @@ from gardens.models import Address, Garden
 class GardenForm(forms.ModelForm):
     class Meta:
         model = Garden
-        fields = ["name", "description"]
+        fields = ["name", "description", "surface", "watering_profile"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # surface and watering_profile are optional in the form;
+        # model defaults kick in when not provided.
+        self.fields["surface"].required = False
+        self.fields["watering_profile"].required = False
 
     def clean_name(self):
         name = self.cleaned_data.get("name")

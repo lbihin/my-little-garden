@@ -56,6 +56,25 @@
             <textarea name="description" class="textarea textarea-bordered w-full h-40" placeholder="Décrivez votre jardin…">{{ form.description.value|default:'' }}</textarea>
           </fieldset>
 
+          <!-- Surface & watering profile -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Surface (m²)</legend>
+              <input type="number" name="surface" value="{{ form.surface.value|default:'' }}" min="0" class="input input-bordered w-full" placeholder="ex. 200" />
+              <p class="label text-xs opacity-50">Permet de calculer les litres d'arrosage</p>
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Profil d'arrosage</legend>
+              <select name="watering_profile" class="select select-bordered w-full">
+                {% for choice in form.watering_profile.field.choices %}
+                  <option value="{{ choice.0 }}" {% if form.watering_profile.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                {% endfor %}
+              </select>
+              <p class="label text-xs opacity-50">Détermine les seuils de recommandation</p>
+            </fieldset>
+          </div>
+
           <!-- Address section -->
           <div class="divider">📍 Adresse (optionnel)</div>
           <p class="text-xs opacity-50 mb-3">Renseignez l'adresse pour localiser le jardin et obtenir les données météo.</p>

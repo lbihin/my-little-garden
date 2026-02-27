@@ -41,10 +41,10 @@
 
         {% if report %}
           <!-- Summary strip -->
-          <p class="text-sm opacity-60 mb-4">
-            📍 {{ location_source }}
+          <p class="text-sm opacity-60 mb-4">📍 {{ location_source }}
             · Saison : {{ report.season|capfirst }}
             · Analyse du {{ report.generated_at }}
+            {% if report.watering %}· Profil : {{ report.watering.profile_label }}{% endif %}
           </p>
 
           <!-- Key metrics -->
@@ -88,10 +88,47 @@
                 <span>−</span>
                 <span>Évapotranspiration : {{ report.et0_last_24h|floatformat:1 }} mm</span>
                 <span>=</span>
-                <span class="font-bold {% if report.water_balance < 0 %}text-warning{% else %}text-success{% endif %}">
+                <span class="font-bold {% if report.water_balance < 0 %}
+                    text-warning
+                  {% else %}
+                    text-success
+                  {% endif %}">
                   {{ report.water_balance|floatformat:1 }} mm
                 </span>
               </div>
+
+              {% if report.watering %}
+                <div class="divider my-1"></div>
+                <h3 class="card-title text-sm">🚿 Bilan hebdomadaire estimé — {{ report.watering.profile_label }}</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mt-1">
+                  <div>
+                    <span class="opacity-60">ET₀ semaine</span>
+                    <div class="font-semibold">{{ report.watering.weekly_et0|floatformat:0 }} mm</div>
+                  </div>
+                  <div>
+                    <span class="opacity-60">Besoin ({{ report.watering.et0_replacement_pct|floatformat:0 }}%)</span>
+                    <div class="font-semibold">{{ report.watering.weekly_need|floatformat:0 }} mm</div>
+                  </div>
+                  <div>
+                    <span class="opacity-60">Pluies</span>
+                    <div class="font-semibold">{{ report.watering.weekly_precip|floatformat:0 }} mm</div>
+                  </div>
+                  <div>
+                    <span class="opacity-60">Déficit</span>
+                    <div class="font-semibold {% if report.watering.weekly_deficit > 0 %}text-warning{% else %}text-success{% endif %}">
+                      {{ report.watering.weekly_deficit|floatformat:0 }} mm
+                      {% if report.watering.weekly_deficit > 0 %}
+                        ({{ report.watering.litres_per_m2|floatformat:0 }} L/m²)
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
+                  <div class="text-xs opacity-60 mt-1">
+                    Pour vos {{ report.watering.surface }} m² : ~{{ report.watering.total_litres|floatformat:0 }} litres à répartir sur la semaine
+                  </div>
+                {% endif %}
+              {% endif %}
             </div>
           </div>
 
@@ -99,10 +136,18 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             {% for advice in report.advices %}
               <div class="card bg-base-100 shadow-sm border-l-4
-                {% if advice.status.value == 'ok' %}border-success
-                {% elif advice.status.value == 'info' %}border-info
-                {% elif advice.status.value == 'warn' %}border-warning
-                {% elif advice.status.value == 'danger' %}border-error
+                {% if advice.status.value == 'ok' %}
+                  border-success
+
+                {% elif advice.status.value == 'info' %}
+                  border-info
+
+                {% elif advice.status.value == 'warn' %}
+                  border-warning
+
+                {% elif advice.status.value == 'danger' %}
+                  border-error
+
                 {% endif %}">
                 <div class="card-body p-4">
                   <div class="flex items-start gap-2">
@@ -116,7 +161,6 @@
               </div>
             {% endfor %}
           </div>
-
         {% else %}
           <!-- Fallback if report is unavailable -->
           <div class="card bg-base-100 shadow-sm">

@@ -3,6 +3,25 @@ Greenkeeping intelligence module.
 
 Analyses weather + soil data from Open-Meteo and returns
 actionable recommendations for lawn/garden care.
+
+Watering strategy reference (cool-season turfgrass, Europe):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 1 mm of rain = 1 L/m²
+• Weekly ET₀ in temperate Europe:
+  - Spring (Mar–May):  ~15–20 mm/week
+  - Summer (Jun–Aug):  ~25–40 mm/week
+  - Autumn (Sep–Nov):  ~10–15 mm/week
+  - Winter (Dec–Feb):  ~2–5 mm/week (grass dormant)
+• Cool-season grasses require ~60–80 % of ET₀ to stay green
+• Deficit irrigation: intentionally replacing only a fraction
+  of ET₀ to save water while accepting some quality loss
+
+Profiles:
+  standard     – 70 % ET₀ replacement, balanced approach
+  eco          – 60 % ET₀, minimise waste, still attractive
+  resilient    – 30 % ET₀, accepts summer dormancy, regrows
+  laissez_faire– 0 %  ET₀, rainfall only, nature decides
+  pro          – 100% ET₀, golf-green quality, zero tolerance
 """
 
 from __future__ import annotations
@@ -12,7 +31,6 @@ from datetime import datetime
 from enum import Enum
 
 from weather.services import WeatherData
-
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -39,6 +57,22 @@ class Advice:
 
 
 @dataclass
+class WateringRecommendation:
+    """Quantified watering recommendation."""
+
+    weekly_et0: float = 0.0  # mm – raw ET₀ over the analysis window
+    et0_replacement_pct: float = 0.70  # profile replacement ratio
+    weekly_need: float = 0.0  # mm – ET₀ × replacement ratio
+    weekly_precip: float = 0.0  # mm – natural rainfall
+    weekly_deficit: float = 0.0  # mm – need − precip (positive = must water)
+    litres_per_m2: float = 0.0  # L/m² to apply (= deficit in mm)
+    total_litres: float = 0.0  # L for the whole garden surface
+    profile: str = "standard"
+    profile_label: str = ""
+    surface: int = 0  # m²
+
+
+@dataclass
 class GreenkeepingReport:
     """Full analysis report returned to the view."""
 
@@ -56,6 +90,53 @@ class GreenkeepingReport:
     wind_speed: float = 0.0
     uv_index: float = 0.0
     season: str = ""
+    # Watering details
+    watering: WateringRecommendation | None = None
+
+
+# ---------------------------------------------------------------------------
+# Watering profiles
+# ---------------------------------------------------------------------------
+
+WATERING_PROFILES: dict[str, dict] = {
+    "standard": {
+        "label": "🌿 Standard",
+        "et0_pct": 0.70,
+        "description": "Beau jardin, arrosage équilibré",
+        # Weekly deficit (mm) below which we don't recommend watering
+        "ignore_threshold": 5.0,
+        # Weekly deficit (mm) above which we alert
+        "warn_threshold": 15.0,
+    },
+    "eco": {
+        "label": "💧 Éco-responsable",
+        "et0_pct": 0.60,
+        "description": "Économe en eau, gazon soigné",
+        "ignore_threshold": 8.0,
+        "warn_threshold": 20.0,
+    },
+    "resilient": {
+        "label": "🌾 Résilient",
+        "et0_pct": 0.30,
+        "description": "Accepte la dormance estivale, le gazon revient après",
+        "ignore_threshold": 15.0,
+        "warn_threshold": 30.0,
+    },
+    "laissez_faire": {
+        "label": "🍃 Laisser-faire",
+        "et0_pct": 0.0,
+        "description": "Pas d'arrosage, la nature décide",
+        "ignore_threshold": 999.0,
+        "warn_threshold": 999.0,
+    },
+    "pro": {
+        "label": "⛳ Greenkeeper pro",
+        "et0_pct": 1.0,
+        "description": "Gazon de golf, tolérance zéro",
+        "ignore_threshold": 2.0,
+        "warn_threshold": 8.0,
+    },
+}
 
 
 # ---------------------------------------------------------------------------
@@ -294,39 +375,184 @@ def _analyse_fertiliser(report: GreenkeepingReport) -> None:
         )
 
 
-def _analyse_watering(snap: dict, report: GreenkeepingReport) -> None:
-    """Water balance: precipitation vs evapotranspiration."""
-    balance = report.water_balance
+def _analyse_watering(
+    weather: WeatherData,
+    report: GreenkeepingReport,
+    profile_key: str = "standard",
+    surface: int = 0,
+) -> None:
+    """
+    Analyse watering needs based on the selected profile.
 
-    if not report.grass_growing:
-        return  # watering dormant grass is wasteful
+    Uses the 7-day water budget approach:
+    1. Estimate weekly ET₀ from available data (extrapolated from the
+       forecast window).
+    2. Multiply by the profile's replacement ratio.
+    3. Subtract natural precipitation → net irrigation need.
+    4. Convert to L/m² (1 mm = 1 L/m²) and total litres for the garden.
+    """
+    profile = WATERING_PROFILES.get(profile_key, WATERING_PROFILES["standard"])
 
-    if balance < -3:
-        report.advices.append(
-            Advice(
-                "💧",
-                "Arrosage recommandé",
-                f"Déficit hydrique de {abs(balance):.1f} mm sur 24 h. "
-                "Arrosez tôt le matin (5-8 h) pour limiter l'évaporation.",
-                Status.WARN,
+    # --- Compute 7-day water budget ---
+    available_hours = len(weather.times)
+    if available_hours == 0:
+        return
+
+    # Total precipitation and ET₀ over all available data
+    total_precip = (
+        sum(v or 0 for v in weather.precipitation)
+        if weather.precipitation
+        else 0
+    )
+    total_et0 = (
+        sum(v or 0 for v in weather.evapotranspiration)
+        if weather.evapotranspiration
+        else 0
+    )
+
+    # Scale to exactly 7 days (168 hours)
+    scale = 168.0 / available_hours if available_hours > 0 else 1.0
+    weekly_precip = total_precip * scale
+    weekly_et0 = total_et0 * scale
+
+    # Profile-adjusted need
+    et0_pct = profile["et0_pct"]
+    weekly_need = weekly_et0 * et0_pct
+    weekly_deficit = max(0, weekly_need - weekly_precip)
+
+    # Litres
+    litres_per_m2 = weekly_deficit  # 1 mm = 1 L/m²
+    total_litres = litres_per_m2 * surface if surface > 0 else 0
+
+    rec = WateringRecommendation(
+        weekly_et0=round(weekly_et0, 1),
+        et0_replacement_pct=et0_pct,
+        weekly_need=round(weekly_need, 1),
+        weekly_precip=round(weekly_precip, 1),
+        weekly_deficit=round(weekly_deficit, 1),
+        litres_per_m2=round(litres_per_m2, 1),
+        total_litres=round(total_litres, 0),
+        profile=profile_key,
+        profile_label=profile["label"],
+        surface=surface,
+    )
+    report.watering = rec
+
+    ignore = profile["ignore_threshold"]
+    warn = profile["warn_threshold"]
+
+    # --- Laissez-faire: never recommend watering ---
+    if profile_key == "laissez_faire":
+        if weekly_deficit > 25:
+            report.advices.append(
+                Advice(
+                    "🍃",
+                    "Le gazon entre en dormance",
+                    f"Déficit de {weekly_deficit:.0f} mm/sem. En mode "
+                    "laisser-faire, le gazon jaunira mais repartira "
+                    "naturellement avec le retour des pluies.",
+                    Status.INFO,
+                )
             )
-        )
-    elif balance < 0:
+        else:
+            report.advices.append(
+                Advice(
+                    "🍃",
+                    "Pas d'arrosage — mode laisser-faire",
+                    "Les précipitations naturelles suffisent pour le moment.",
+                    Status.OK,
+                )
+            )
+        return
+
+    # --- Dormant grass: skip watering in most profiles ---
+    if not report.grass_growing and profile_key != "pro":
         report.advices.append(
             Advice(
                 "💧",
-                "Gazon légèrement en déficit",
-                f"Bilan hydrique : {balance:+.1f} mm. Surveillez l'humidité du sol.",
+                "Gazon dormant — arrosage inutile",
+                "Le sol est trop froid pour une croissance active. "
+                "Économisez l'eau jusqu'au redémarrage.",
                 Status.INFO,
             )
         )
+        return
+
+    # --- Generate advice based on deficit vs thresholds ---
+    if weekly_deficit <= ignore:
+        detail = (
+            f"Besoin estimé : {weekly_need:.0f} mm/sem "
+            f"({et0_pct:.0%} de l'ET₀). "
+            f"Pluies prévues : {weekly_precip:.0f} mm. "
+            f"Aucun arrosage nécessaire."
+        )
+        report.advices.append(
+            Advice("💧", "Pas besoin d'arroser", detail, Status.OK)
+        )
+    elif weekly_deficit <= warn:
+        detail = (
+            f"Besoin : {weekly_need:.0f} mm/sem − pluies {weekly_precip:.0f} mm "
+            f"= déficit de {weekly_deficit:.0f} mm ({litres_per_m2:.0f} L/m²). "
+        )
+        if total_litres > 0:
+            detail += (
+                f"Pour vos {surface} m² : ~{total_litres:.0f} L "
+                "à répartir sur la semaine. "
+            )
+        detail += (
+            "Arrosez en profondeur 1 à 2 fois par semaine, "
+            "tôt le matin (5-8 h)."
+        )
+        report.advices.append(
+            Advice("💧", "Arrosage conseillé", detail, Status.INFO)
+        )
     else:
+        detail = (
+            f"Déficit important : {weekly_deficit:.0f} mm/sem "
+            f"({litres_per_m2:.0f} L/m²). "
+        )
+        if total_litres > 0:
+            detail += f"Pour vos {surface} m² : ~{total_litres:.0f} L. "
+        detail += (
+            "Arrosez en profondeur (15-20 min par zone) 2 à 3 fois par semaine, "
+            "tôt le matin. Évitez les arrosages légers et fréquents qui "
+            "favorisent un enracinement superficiel."
+        )
+        report.advices.append(
+            Advice("💧", "Arrosage recommandé", detail, Status.WARN)
+        )
+
+    # --- Profile-specific bonus tips ---
+    if profile_key == "eco" and weekly_deficit > ignore:
         report.advices.append(
             Advice(
-                "💧",
-                "Pas besoin d'arroser",
-                f"Bilan hydrique : {balance:+.1f} mm — les précipitations suffisent.",
-                Status.OK,
+                "♻️",
+                "Astuce éco : récupérez l'eau de pluie",
+                "Un récupérateur de 300 L couvre ~1 arrosage pour 30 m². "
+                "Tondez haut (6-8 cm) pour réduire l'évaporation du sol.",
+                Status.INFO,
+            )
+        )
+    elif profile_key == "resilient" and weekly_deficit > ignore:
+        report.advices.append(
+            Advice(
+                "🌾",
+                "Astuce résilient : laisser jaunir n'est pas fatal",
+                "Le gazon entre en dormance au-dessus de ~25 mm/sem de "
+                "déficit. Il reverdit naturellement en 2-4 semaines "
+                "après le retour des pluies.",
+                Status.INFO,
+            )
+        )
+    elif profile_key == "pro":
+        report.advices.append(
+            Advice(
+                "⛳",
+                f"Profil pro : remplacement de {et0_pct:.0%} de l'ET₀",
+                f"ET₀ estimée : {weekly_et0:.0f} mm/sem. Objectif : "
+                "maintenir l'humidité du sol entre 0,25 et 0,35 m³/m³. "
+                "Programmez l'arrosage en fonction du tensiomètre.",
+                Status.INFO,
             )
         )
 
@@ -400,11 +626,22 @@ def _analyse_overseeding(snap: dict, report: GreenkeepingReport) -> None:
 # ---------------------------------------------------------------------------
 
 
-def analyse(weather: WeatherData) -> GreenkeepingReport:
+def analyse(
+    weather: WeatherData,
+    profile: str = "standard",
+    surface: int = 0,
+) -> GreenkeepingReport:
     """
     Run all greenkeeping analyses on the given weather data.
 
-    Returns a GreenkeepingReport with individual Advice items.
+    Args:
+        weather: WeatherData from the Open-Meteo service.
+        profile: Watering profile key (standard, eco, resilient,
+                 laissez_faire, pro).
+        surface: Garden surface in m² (used for total litres).
+
+    Returns:
+        GreenkeepingReport with individual Advice items.
     """
     report = GreenkeepingReport(
         generated_at=datetime.now().strftime("%d/%m/%Y %H:%M"),
@@ -441,7 +678,7 @@ def analyse(weather: WeatherData) -> GreenkeepingReport:
     _analyse_trampling(snap, report)
     _analyse_scarification(snap, report)
     _analyse_fertiliser(report)
-    _analyse_watering(snap, report)
+    _analyse_watering(weather, report, profile_key=profile, surface=surface)
     _analyse_treatment_window(snap, report)
     _analyse_overseeding(snap, report)
 

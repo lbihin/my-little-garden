@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpResponse
@@ -5,8 +7,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView
 from gardens.forms import AddressForm, GardenForm
 from gardens.models import Garden
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -76,11 +76,7 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
             from weather.services import fetch_weather
 
             garden = self.object
-            if (
-                garden.address
-                and garden.address.latitude
-                and garden.address.longitude
-            ):
+            if garden.address and garden.address.latitude and garden.address.longitude:
                 lat = float(garden.address.latitude)
                 lon = float(garden.address.longitude)
                 context["location_source"] = garden.address.city or garden.address.name
@@ -89,7 +85,11 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
                 context["location_source"] = "Paris (par défaut)"
 
             weather = fetch_weather(lat, lon, days=3)
-            report = analyse(weather)
+            report = analyse(
+                weather,
+                profile=garden.watering_profile,
+                surface=garden.surface or 0,
+            )
             context["report"] = report
             context["weather"] = weather
             if weather.ok:

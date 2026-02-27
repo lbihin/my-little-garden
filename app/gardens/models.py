@@ -73,6 +73,14 @@ class GardenManager(models.Manager):
 
 
 class Garden(models.Model):
+    WATERING_PROFILES = [
+        ("standard", "🌿 Standard — beau jardin, arrosage équilibré"),
+        ("eco", "💧 Éco-responsable — économe en eau, gazon soigné"),
+        ("resilient", "🌾 Résilient — accepte la dormance en été"),
+        ("laissez_faire", "🍃 Laisser-faire — pas d'arrosage, la nature décide"),
+        ("pro", "⛳ Greenkeeper pro — gazon de golf, tolérance zéro"),
+    ]
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -92,6 +100,11 @@ class Garden(models.Model):
         blank=True,
     )
     surface = models.PositiveIntegerField(default=0)
+    watering_profile = models.CharField(
+        max_length=20,
+        choices=WATERING_PROFILES,
+        default="standard",
+    )
 
     objects = GardenManager()
 

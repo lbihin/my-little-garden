@@ -129,6 +129,14 @@ class WeatherData:
         start = max(0, idx - hours + 1)
         return sum(v or 0 for v in self.evapotranspiration[start : idx + 1])
 
+    def upcoming_et0_mm(self, hours: int = 24) -> float:
+        """Sum of reference evapotranspiration over the next *hours*."""
+        if not self.evapotranspiration:
+            return 0.0
+        idx = self._current_index()
+        end = min(len(self.evapotranspiration), idx + hours + 1)
+        return sum(v or 0 for v in self.evapotranspiration[idx + 1 : end])
+
 
 def fetch_weather(latitude: float, longitude: float, days: int = 3) -> WeatherData:
     """
