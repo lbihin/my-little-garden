@@ -6,6 +6,10 @@ from django.views.generic import DetailView, ListView
 from gardens.forms import AddressForm, GardenForm
 from gardens.models import Garden
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class GardenFormView(LoginRequiredMixin, ListView):
     """Handles both GET (show form) and POST (create garden + optional address)."""
@@ -58,9 +62,42 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
     model = Garden
     context_object_name = "garden"
 
+    # Default coordinates (Paris) if garden has no address
+    DEFAULT_LAT = 48.8566
+    DEFAULT_LON = 2.3522
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["address"] = self.object.address
+
+        # Fetch weather + greenkeeping analysis for the dashboard
+        try:
+            from weather.greenkeeping import analyse
+            from weather.services import fetch_weather
+
+            garden = self.object
+            if (
+                garden.address
+                and garden.address.latitude
+                and garden.address.longitude
+            ):
+                lat = float(garden.address.latitude)
+                lon = float(garden.address.longitude)
+                context["location_source"] = garden.address.city or garden.address.name
+            else:
+                lat, lon = self.DEFAULT_LAT, self.DEFAULT_LON
+                context["location_source"] = "Paris (par défaut)"
+
+            weather = fetch_weather(lat, lon, days=3)
+            report = analyse(weather)
+            context["report"] = report
+            context["weather"] = weather
+            if weather.ok:
+                context["current"] = weather.current_snapshot()
+        except Exception:
+            logger.exception("Greenkeeping analysis failed")
+            context["report"] = None
+
         return context
 
 

@@ -25,7 +25,7 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
         if garden.address and garden.address.latitude and garden.address.longitude:
             lat = float(garden.address.latitude)
             lon = float(garden.address.longitude)
-            context["location_source"] = garden.address.name
+            context["location_source"] = garden.address.city or garden.address.name
         else:
             lat, lon = DEFAULT_LAT, DEFAULT_LON
             context["location_source"] = "Paris (par défaut)"
@@ -40,11 +40,14 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             # Serialize for Chart.js
             context["chart_labels"] = json.dumps(weather.times)
             context["chart_air_temp"] = json.dumps(weather.air_temperature)
+            context["chart_humidity"] = json.dumps(weather.humidity)
+            context["chart_precipitation"] = json.dumps(weather.precipitation)
+            context["chart_wind_speed"] = json.dumps(weather.wind_speed)
+            context["chart_uv_index"] = json.dumps(weather.uv_index)
             context["chart_soil_0"] = json.dumps(weather.soil_temp_0cm)
             context["chart_soil_6"] = json.dumps(weather.soil_temp_6cm)
             context["chart_soil_18"] = json.dumps(weather.soil_temp_18cm)
             context["chart_soil_54"] = json.dumps(weather.soil_temp_54cm)
-            context["chart_humidity"] = json.dumps(weather.humidity)
             context["chart_moisture_surface"] = json.dumps(
                 weather.soil_moisture_surface
             )

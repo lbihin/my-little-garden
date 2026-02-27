@@ -13,6 +13,11 @@ def _fake_weather_data() -> WeatherData:
         times=["2026-02-27T12:00", "2026-02-27T13:00"],
         air_temperature=[8.5, 9.0],
         humidity=[72.0, 68.0],
+        precipitation=[0.0, 0.2],
+        precipitation_probability=[10.0, 30.0],
+        wind_speed=[5.0, 8.0],
+        uv_index=[2.0, 3.0],
+        evapotranspiration=[0.15, 0.20],
         soil_temp_0cm=[6.0, 6.2],
         soil_temp_6cm=[5.5, 5.6],
         soil_temp_18cm=[4.8, 4.8],
@@ -43,10 +48,30 @@ class TestWeatherData:
         snap = wd.current_snapshot()
         assert snap["air_temp"] in [8.5, 9.0]
         assert "soil_0cm" in snap
+        assert "precipitation" in snap
+        assert "wind_speed" in snap
 
     def test_current_snapshot_empty(self):
         wd = WeatherData()
         assert wd.current_snapshot() == {}
+
+    def test_recent_precipitation(self):
+        wd = _fake_weather_data()
+        total = wd.recent_precipitation_mm(24)
+        # Index 0 is current (future timestamps), so only precip[0]=0.0
+        assert total == pytest.approx(0.0, abs=0.01)
+
+    def test_recent_et0(self):
+        wd = _fake_weather_data()
+        total = wd.recent_et0_mm(24)
+        # Index 0 is current (future timestamps), so only et0[0]=0.15
+        assert total == pytest.approx(0.15, abs=0.01)
+
+    def test_upcoming_precipitation(self):
+        wd = _fake_weather_data()
+        # Index 0 is "current" since both are in the future relative to test
+        total = wd.upcoming_precipitation_mm(24)
+        assert total >= 0
 
 
 class TestFetchWeather:
@@ -62,6 +87,11 @@ class TestFetchWeather:
                 "time": ["2026-02-27T12:00"],
                 "temperature_2m": [8.5],
                 "relative_humidity_2m": [72.0],
+                "precipitation": [0.0],
+                "precipitation_probability": [10.0],
+                "wind_speed_10m": [5.0],
+                "uv_index": [2.0],
+                "et0_fao_evapotranspiration": [0.15],
                 "soil_temperature_0cm": [6.0],
                 "soil_temperature_6cm": [5.5],
                 "soil_temperature_18cm": [4.8],
@@ -74,6 +104,8 @@ class TestFetchWeather:
         assert result.ok
         assert result.air_temperature == [8.5]
         assert result.soil_temp_0cm == [6.0]
+        assert result.precipitation == [0.0]
+        assert result.wind_speed == [5.0]
 
     @patch("weather.services.httpx.get")
     def test_http_error(self, mock_get):

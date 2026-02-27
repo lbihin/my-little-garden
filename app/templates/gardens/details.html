@@ -37,18 +37,118 @@
 
       {% block garden_detail_content %}
         <div class="divider"></div>
-        <h2 class="text-xl font-bold mb-4">Tableau de bord</h2>
-        <div class="card bg-base-100 shadow-sm">
-          <div class="card-body">
-            <h3 class="card-title text-sm">Description du jardin</h3>
-            <p>{{ garden.description|default:'Aucune description.' }}</p>
-            {% if garden.surface %}
-              <div class="mt-2">
-                <span class="badge badge-outline">{{ garden.surface }} m²</span>
-              </div>
-            {% endif %}
+        <h2 class="text-xl font-bold mb-4">🏠 Tableau de bord</h2>
+
+        {% if report %}
+          <!-- Summary strip -->
+          <p class="text-sm opacity-60 mb-4">
+            📍 {{ location_source }}
+            · Saison : {{ report.season|capfirst }}
+            · Analyse du {{ report.generated_at }}
+          </p>
+
+          <!-- Key metrics -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌡️ Air</div>
+              <div class="stat-value text-lg">{{ report.air_temp|floatformat:1 }}°C</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌱 Sol surface</div>
+              <div class="stat-value text-lg">{{ report.soil_temp_surface|floatformat:1 }}°C</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">💧 Humidité sol</div>
+              <div class="stat-value text-lg">{{ report.moisture_surface|floatformat:2 }}</div>
+              <div class="stat-desc">m³/m³</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌧️ Pluie 24 h</div>
+              <div class="stat-value text-lg">{{ report.precip_last_24h|floatformat:1 }}</div>
+              <div class="stat-desc">mm</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌧️ Pluie prévue</div>
+              <div class="stat-value text-lg">{{ report.precip_next_24h|floatformat:1 }}</div>
+              <div class="stat-desc">mm (24 h)</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">💨 Vent</div>
+              <div class="stat-value text-lg">{{ report.wind_speed|floatformat:0 }}</div>
+              <div class="stat-desc">km/h</div>
+            </div>
           </div>
-        </div>
+
+          <!-- Water balance card -->
+          <div class="card bg-base-100 shadow-sm mb-6">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm">💧 Bilan hydrique (24 h)</h3>
+              <div class="flex items-center gap-4 text-sm">
+                <span>Précipitations : {{ report.precip_last_24h|floatformat:1 }} mm</span>
+                <span>−</span>
+                <span>Évapotranspiration : {{ report.et0_last_24h|floatformat:1 }} mm</span>
+                <span>=</span>
+                <span class="font-bold {% if report.water_balance < 0 %}text-warning{% else %}text-success{% endif %}">
+                  {{ report.water_balance|floatformat:1 }} mm
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advice cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {% for advice in report.advices %}
+              <div class="card bg-base-100 shadow-sm border-l-4
+                {% if advice.status.value == 'ok' %}border-success
+                {% elif advice.status.value == 'info' %}border-info
+                {% elif advice.status.value == 'warn' %}border-warning
+                {% elif advice.status.value == 'danger' %}border-error
+                {% endif %}">
+                <div class="card-body p-4">
+                  <div class="flex items-start gap-2">
+                    <span class="text-xl">{{ advice.icon }}</span>
+                    <div>
+                      <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
+                      <p class="text-xs opacity-70 mt-1">{{ advice.detail }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+        {% else %}
+          <!-- Fallback if report is unavailable -->
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h3 class="card-title text-sm">Description du jardin</h3>
+              <p>{{ garden.description|default:'Aucune description.' }}</p>
+              {% if garden.surface %}
+                <div class="mt-2">
+                  <span class="badge badge-outline">{{ garden.surface }} m²</span>
+                </div>
+              {% endif %}
+              <div class="alert alert-info mt-4">
+                <span>Ajoutez une adresse à votre jardin pour obtenir des conseils de greenkeeping personnalisés.</span>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Garden description (always shown) -->
+        {% if report and garden.description %}
+          <div class="card bg-base-100 shadow-sm mt-4">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm">📋 Description</h3>
+              <p class="text-sm">{{ garden.description }}</p>
+              {% if garden.surface %}
+                <div class="mt-2">
+                  <span class="badge badge-outline">{{ garden.surface }} m²</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
       {% endblock %}
     </div>
   </div>
