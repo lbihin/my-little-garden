@@ -79,13 +79,9 @@
           <!-- 1. Watering summary card -->
           {% if report.watering %}
             <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}
-                
                 border-warning
-
               {% else %}
-                
                 border-success
-
               {% endif %}">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between">
@@ -109,6 +105,7 @@
                 {% else %}
                   <p class="text-sm mt-1 text-success">✓ Besoins en eau couverts cette semaine</p>
                 {% endif %}
+                <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs mt-2 opacity-50 hover:opacity-100 self-end">Voir plus →</a>
               </div>
             </div>
           {% endif %}
@@ -119,11 +116,15 @@
               {% if advice.status.value == 'warn' or advice.status.value == 'danger' %}
                 <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}
                     
+                    
                     border-error
+
 
                   {% else %}
                     
+                    
                     border-warning
+
 
                   {% endif %}">
                   <div class="card-body p-4">
@@ -144,11 +145,15 @@
           {% if plant_count > 0 %}
             <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}
                 
+                
                 border-info
+
 
               {% else %}
                 
+                
                 border-success
+
 
               {% endif %}">
               <div class="card-body p-4">
@@ -239,6 +244,10 @@
         <!-- Quick weather snapshot -->
         <!-- ═══════════════════════════════════════ -->
         {% if report %}
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold">🌤️ Météo & Sol</h3>
+            <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100">Voir plus →</a>
+          </div>
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">🌡️ Air</div>
@@ -247,17 +256,11 @@
             <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Zone racines (~6 cm)">
               <div class="stat-title text-xs">🌾 Sol</div>
               <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
-                  
                   text-info
-
                 {% elif report.soil_temp_roots > 25 %}
-                  
                   text-warning
-
                 {% else %}
-                  
                   text-success
-
                 {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
@@ -291,19 +294,27 @@
             {% for advice in report.advices %}
               <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
                   
+                  
                   border-success
+
 
                 {% elif advice.status.value == 'info' %}
                   
+                  
                   border-info
+
 
                 {% elif advice.status.value == 'warn' %}
                   
+                  
                   border-warning
+
 
                 {% elif advice.status.value == 'danger' %}
                   
+                  
                   border-error
+
 
                 {% endif %}">
                 <div class="card-body p-4">

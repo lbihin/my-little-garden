@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from gardens.models import Garden
+from weather.greenkeeping import analyse
 from weather.services import fetch_weather
 
 # Default coordinates (Paris) if garden has no address
@@ -37,6 +38,15 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
 
         if weather.ok:
             context["current"] = weather.current_snapshot()
+
+            # Greenkeeping report (watering, advices, water balance…)
+            report = analyse(
+                weather,
+                profile=garden.watering_profile,
+                surface=garden.surface or 0,
+            )
+            context["report"] = report
+
             # Serialize for Chart.js
             context["chart_labels"] = json.dumps(weather.times)
             context["chart_air_temp"] = json.dumps(weather.air_temperature)
@@ -52,5 +62,6 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
                 weather.soil_moisture_surface
             )
             context["chart_moisture_deep"] = json.dumps(weather.soil_moisture_deep)
+            context["chart_et0"] = json.dumps(weather.evapotranspiration)
 
         return context
