@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "dev": "tailwindcss -i app/static/tw/tailwind-input.css -o app/static/css/mlghome-ui.css --watch",
+    "build": "tailwindcss -i app/static/tw/tailwind-input.css -o app/static/css/mlghome-ui.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
