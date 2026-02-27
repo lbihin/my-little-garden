@@ -104,9 +104,11 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
 
             garden = self.object
             context["plant_count"] = garden.plants.count()
-            context["plant_tasks_pending"] = PlantTask.objects.filter(
-                plant__garden=garden, done=False
-            ).select_related("plant").order_by("-priority", "due_date")[:5]
+            context["plant_tasks_pending"] = (
+                PlantTask.objects.filter(plant__garden=garden, done=False)
+                .select_related("plant")
+                .order_by("-priority", "due_date")[:5]
+            )
             context["plant_tasks_pending_total"] = PlantTask.objects.filter(
                 plant__garden=garden, done=False
             ).count()

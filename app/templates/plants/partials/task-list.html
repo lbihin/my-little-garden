@@ -19,7 +19,11 @@
         <form hx-post="{% url 'gardens:plants:task-toggle' garden_slug=plant.garden.slug pk=task.pk %}" hx-target="#task-list" hx-swap="innerHTML">
           {% csrf_token %}
           <button type="submit" class="btn btn-ghost btn-xs btn-circle">
-            {% if task.done %}☑️{% else %}⬜{% endif %}
+            {% if task.done %}
+              ☑️
+            {% else %}
+              ⬜
+            {% endif %}
           </button>
         </form>
         <span class="flex-1 text-sm {% if task.done %}line-through{% endif %}">{{ task.title }}</span>

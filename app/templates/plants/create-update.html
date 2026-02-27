@@ -1,7 +1,11 @@
 {% extends 'gardens/details.html' %}
 
 {% block title %}
-  {% if plant %}Modifier {{ plant.common_name }}{% else %}Ajouter une plante{% endif %} — {{ garden.name }}
+  {% if plant %}
+    Modifier {{ plant.common_name }}
+  {% else %}
+    Ajouter une plante
+  {% endif %}— {{ garden.name }}
 {% endblock %}
 
 {% block garden_detail_content %}
@@ -39,7 +43,14 @@
           </fieldset>
 
           <div class="card-actions justify-end">
-            <a href="{% if plant %}{{ plant.get_absolute_url }}{% else %}{% url 'gardens:plants:list' garden_slug=garden.slug %}{% endif %}" class="btn btn-ghost">Annuler</a>
+            <a href="{% if plant %}
+                {{ plant.get_absolute_url }}
+              {% else %}
+                {% url 'gardens:plants:list' garden_slug=garden.slug %}
+              {% endif %}"
+              class="btn btn-ghost">
+              Annuler
+            </a>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
           </div>
         </form>

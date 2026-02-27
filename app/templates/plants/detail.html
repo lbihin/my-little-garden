@@ -32,9 +32,7 @@
         </div>
       {% endif %}
       {% if plant.identification_score %}
-        <div class="mt-2 text-xs opacity-50 text-center">
-          Identifié à {{ plant.identification_score|floatformat:0 }}% par PlantNet
-        </div>
+        <div class="mt-2 text-xs opacity-50 text-center">Identifié à {{ plant.identification_score|floatformat:0 }}% par PlantNet</div>
       {% endif %}
     </div>
     <div class="md:col-span-2">

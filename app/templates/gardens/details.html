@@ -41,7 +41,9 @@
       <!-- Outils -->
       <li class="menu-title text-xs uppercase opacity-50 mt-3">Outils</li>
       <ul>
-        <li class="disabled"><a>📅 Calendrier</a></li>
+        <li class="disabled">
+          <a>📅 Calendrier</a>
+        </li>
         <li>
           <a href="{{ garden.get_edit_url }}">⚙️ Paramètres</a>
         </li>
@@ -62,7 +64,7 @@
         <div class="divider"></div>
 
         <!-- ═══════════════════════════════════════ -->
-        <!-- "On fait quoi aujourd'hui ?" section    -->
+        <!-- "On fait quoi aujourd'hui ?" section -->
         <!-- ═══════════════════════════════════════ -->
         <h2 class="text-xl font-bold mb-4">☀️ On fait quoi aujourd'hui ?</h2>
 
@@ -74,19 +76,26 @@
 
         <!-- Quick-action cards grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-
           <!-- 1. Watering summary card -->
           {% if report.watering %}
-            <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}border-warning{% else %}border-success{% endif %}">
+            <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}
+                border-warning
+              {% else %}
+                border-success
+              {% endif %}">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between">
                   <h3 class="card-title text-sm gap-1">🚿 Arrosage</h3>
                   <span class="badge badge-outline badge-sm">{{ report.watering.profile_label }}</span>
                 </div>
                 {% if report.watering.weekly_deficit > 0 %}
-                  <p class="text-sm mt-1">Déficit de <strong>{{ report.watering.weekly_deficit|floatformat:0 }} mm</strong> cette semaine</p>
+                  <p class="text-sm mt-1">
+                    Déficit de <strong>{{ report.watering.weekly_deficit|floatformat:0 }} mm</strong> cette semaine
+                  </p>
                   {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
-                    <p class="text-xs opacity-60">→ Arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} L</strong> sur {{ report.watering.surface }} m²</p>
+                    <p class="text-xs opacity-60">
+                      → Arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} L</strong> sur {{ report.watering.surface }} m²
+                    </p>
                   {% endif %}
                   <!-- Mini progress bar -->
                   <div class="w-full bg-base-200 rounded-full h-2 mt-2">
@@ -104,7 +113,11 @@
           {% if report %}
             {% for advice in report.advices %}
               {% if advice.status.value == 'warn' or advice.status.value == 'danger' %}
-                <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}border-error{% else %}border-warning{% endif %}">
+                <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}
+                    border-error
+                  {% else %}
+                    border-warning
+                  {% endif %}">
                   <div class="card-body p-4">
                     <div class="flex items-start gap-2">
                       <span class="text-xl">{{ advice.icon }}</span>
@@ -121,25 +134,33 @@
 
           <!-- 3. Plant tasks card -->
           {% if plant_count > 0 %}
-            <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}border-info{% else %}border-success{% endif %}">
+            <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}
+                border-info
+              {% else %}
+                border-success
+              {% endif %}">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between">
                   <h3 class="card-title text-sm gap-1">🌺 Plantes</h3>
                   <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs">Voir tout →</a>
                 </div>
                 {% if plant_tasks_pending_total > 0 %}
-                  <p class="text-sm mt-1"><strong>{{ plant_tasks_pending_total }}</strong> tâche{{ plant_tasks_pending_total|pluralize }} à faire</p>
+                  <p class="text-sm mt-1">
+                    <strong>{{ plant_tasks_pending_total }}</strong> tâche{{ plant_tasks_pending_total|pluralize }} à faire
+                  </p>
                   <ul class="text-xs mt-2 space-y-1">
                     {% for task in plant_tasks_pending %}
                       <li class="flex items-center gap-1">
-                        {% if task.priority == 3 %}<span class="badge badge-error badge-xs">!</span>{% endif %}
+                        {% if task.priority == 3 %}
+                          <span class="badge badge-error badge-xs">!</span>
+                        {% endif %}
                         <span>{{ task.title }}</span>
                         <span class="opacity-40">— {{ task.plant.common_name }}</span>
                       </li>
                     {% endfor %}
                   </ul>
                   {% if plant_tasks_pending_total > 5 %}
-                    <p class="text-xs opacity-40 mt-1">… et {{ plant_tasks_pending_total|add:"-5" }} autre{{ plant_tasks_pending_total|add:"-5"|pluralize }}</p>
+                    <p class="text-xs opacity-40 mt-1">… et {{ plant_tasks_pending_total|add:'-5' }} autre{{ plant_tasks_pending_total|add:'-5'|pluralize }}</p>
                   {% endif %}
                 {% else %}
                   <p class="text-sm mt-1 text-success">✓ Tout est à jour !</p>
@@ -168,11 +189,10 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- ═══════════════════════════════════════ -->
-        <!-- Quick weather snapshot                  -->
+        <!-- Quick weather snapshot -->
         <!-- ═══════════════════════════════════════ -->
         {% if report %}
           <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
@@ -182,7 +202,13 @@
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Zone racines (~6 cm)">
               <div class="stat-title text-xs">🌾 Sol</div>
-              <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}text-info{% elif report.soil_temp_roots > 25 %}text-warning{% else %}text-success{% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
+              <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
+                  text-info
+                {% elif report.soil_temp_roots > 25 %}
+                  text-warning
+                {% else %}
+                  text-success
+                {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">💧 Humidité</div>
@@ -207,13 +233,21 @@
         {% endif %}
 
         <!-- ═══════════════════════════════════════ -->
-        <!-- All greenkeeping advice cards           -->
+        <!-- All greenkeeping advice cards -->
         <!-- ═══════════════════════════════════════ -->
         {% if report %}
           <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
             {% for advice in report.advices %}
-              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}border-success{% elif advice.status.value == 'info' %}border-info{% elif advice.status.value == 'warn' %}border-warning{% elif advice.status.value == 'danger' %}border-error{% endif %}">
+              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
+                  border-success
+                {% elif advice.status.value == 'info' %}
+                  border-info
+                {% elif advice.status.value == 'warn' %}
+                  border-warning
+                {% elif advice.status.value == 'danger' %}
+                  border-error
+                {% endif %}">
                 <div class="card-body p-4">
                   <div class="flex items-start gap-2">
                     <span class="text-xl">{{ advice.icon }}</span>

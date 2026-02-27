@@ -127,9 +127,7 @@ class TestPlantViews:
 
     def test_plant_delete(self, client, garden, plant, user):
         client.login(username="testeur", password="secret123!")
-        resp = client.post(
-            f"/gardens/{garden.slug}/plants/{plant.slug}/delete/"
-        )
+        resp = client.post(f"/gardens/{garden.slug}/plants/{plant.slug}/delete/")
         assert resp.status_code == 302
         assert not Plant.objects.filter(pk=plant.pk).exists()
 
@@ -164,3 +162,89 @@ class TestPlantTaskViews:
         )
         assert resp.status_code == 200
         assert not PlantTask.objects.filter(pk=plant_task.pk).exists()
+
+
+# ── Identify & Search views ──────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestIdentifyViews:
+    def test_identify_page_search_mode(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.get(f"/gardens/{garden.slug}/plants/identify/?mode=search")
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        assert "Recherche par nom" in content
+
+    def test_identify_page_photo_mode(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.get(f"/gardens/{garden.slug}/plants/identify/?mode=photo")
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        assert "Identification par photo" in content
+
+    def test_identify_default_mode_is_search(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.get(f"/gardens/{garden.slug}/plants/identify/")
+        assert resp.status_code == 200
+        assert "tab-active" in resp.content.decode()
+
+    def test_photo_post_no_url(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.post(
+            f"/gardens/{garden.slug}/plants/identify/",
+            {"image_url": ""},
+        )
+        assert resp.status_code == 200
+        assert "Veuillez fournir" in resp.content.decode()
+
+    def test_search_htmx_short_query(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.get(
+            f"/gardens/{garden.slug}/plants/identify/search/?q=a",
+            HTTP_HX_REQUEST="true",
+        )
+        assert resp.status_code == 200
+
+    def test_add_from_identify(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.post(
+            f"/gardens/{garden.slug}/plants/identify/add/",
+            {
+                "common_name": "Romarin",
+                "scientific_name": "Rosmarinus officinalis",
+                "score": "",
+            },
+        )
+        assert resp.status_code == 302
+        plant = Plant.objects.get(common_name="Romarin")
+        assert plant.scientific_name == "Rosmarinus officinalis"
+        assert plant.garden == garden
+
+    def test_add_from_identify_no_name_redirects(self, client, garden, user):
+        client.login(username="testeur", password="secret123!")
+        resp = client.post(
+            f"/gardens/{garden.slug}/plants/identify/add/",
+            {"common_name": "", "scientific_name": "", "score": ""},
+        )
+        assert resp.status_code == 302
+        assert Plant.objects.count() == 0
+
+
+# ── Services tests ───────────────────────────────────────────
+
+
+class TestSearchSpecies:
+    def test_empty_query_returns_empty(self):
+        from plants.services import search_species
+
+        result = search_species("")
+        assert result["success"] is True
+        assert result["results"] == []
+
+    def test_short_query_returns_empty(self):
+        from plants.services import search_species
+
+        result = search_species("a")
+        assert result["success"] is True
+        assert result["results"] == []

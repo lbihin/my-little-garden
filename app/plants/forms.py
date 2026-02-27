@@ -1,5 +1,4 @@
 from django import forms
-
 from plants.models import Plant, PlantTask
 
 
@@ -39,11 +38,12 @@ class PlantTaskForm(forms.ModelForm):
             {"class": "input input-bordered w-full", "placeholder": "ex. Tailler"}
         )
         self.fields["notes"].widget.attrs.update(
-            {"class": "textarea textarea-bordered w-full h-16", "placeholder": "Détails…"}
+            {
+                "class": "textarea textarea-bordered w-full h-16",
+                "placeholder": "Détails…",
+            }
         )
-        self.fields["priority"].widget.attrs.update(
-            {"class": "select select-bordered"}
-        )
+        self.fields["priority"].widget.attrs.update({"class": "select select-bordered"})
         self.fields["due_date"].widget = forms.DateInput(
             attrs={"type": "date", "class": "input input-bordered"}
         )

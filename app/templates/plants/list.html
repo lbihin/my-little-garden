@@ -9,9 +9,7 @@
 
   <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
     <h2 class="text-xl font-bold">🌺 Mes plantes</h2>
-    <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">
-      ＋ Ajouter une plante
-    </a>
+    <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">＋ Ajouter une plante</a>
   </div>
 
   {% if plants %}
@@ -33,9 +31,7 @@
               <p class="text-xs italic opacity-50">{{ plant.scientific_name }}</p>
             {% endif %}
             {% if plant.pending_tasks_count > 0 %}
-              <div class="badge badge-warning badge-sm gap-1">
-                {{ plant.pending_tasks_count }} tâche{{ plant.pending_tasks_count|pluralize }}
-              </div>
+              <div class="badge badge-warning badge-sm gap-1">{{ plant.pending_tasks_count }} tâche{{ plant.pending_tasks_count|pluralize }}</div>
             {% else %}
               <div class="badge badge-success badge-sm gap-1">✓ À jour</div>
             {% endif %}
@@ -49,9 +45,7 @@
         <span class="text-5xl mb-3">🌱</span>
         <h3 class="font-semibold text-lg">Aucune plante pour le moment</h3>
         <p class="text-sm opacity-60 mb-4">Ajoutez vos premières plantes pour suivre leur entretien.</p>
-        <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm">
-          Ajouter une plante
-        </a>
+        <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm">Ajouter une plante</a>
       </div>
     </div>
   {% endif %}

@@ -2,11 +2,9 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
-
 from gardens.models import Garden
 from plants.forms import PlantForm, PlantTaskForm
 from plants.models import Plant, PlantTask
@@ -45,7 +43,9 @@ class PlantCreateView(LoginRequiredMixin, ListView):
             plant = form.save(commit=False)
             plant.garden = garden
             plant.save()
-            return redirect("gardens:plants:detail", garden_slug=garden.slug, slug=plant.slug)
+            return redirect(
+                "gardens:plants:detail", garden_slug=garden.slug, slug=plant.slug
+            )
         context = {"garden": garden, "form": form}
         return render(request, self.template_name, context)
 
@@ -108,7 +108,9 @@ def plant_delete_view(request, garden_slug, slug):
         garden = plant.garden
         plant.delete()
         return redirect("gardens:plants:list", garden_slug=garden.slug)
-    return render(request, "plants/delete.html", {"garden": plant.garden, "plant": plant})
+    return render(
+        request, "plants/delete.html", {"garden": plant.garden, "plant": plant}
+    )
 
 
 # ---------- Tasks (HTMX-powered) ----------
@@ -126,60 +128,121 @@ def task_create_view(request, garden_slug, slug):
             task.plant = plant
             task.save()
     tasks = plant.tasks.all()
-    return render(request, "plants/partials/task-list.html", {"plant": plant, "tasks": tasks, "task_form": PlantTaskForm()})
+    return render(
+        request,
+        "plants/partials/task-list.html",
+        {"plant": plant, "tasks": tasks, "task_form": PlantTaskForm()},
+    )
 
 
 @login_required
 def task_toggle_view(request, garden_slug, pk):
     task = get_object_or_404(
-        PlantTask, pk=pk, plant__garden__slug=garden_slug, plant__garden__created_by=request.user
+        PlantTask,
+        pk=pk,
+        plant__garden__slug=garden_slug,
+        plant__garden__created_by=request.user,
     )
     if request.method == "POST":
         task.done = not task.done
         task.completed_at = timezone.now() if task.done else None
         task.save()
     tasks = task.plant.tasks.all()
-    return render(request, "plants/partials/task-list.html", {"plant": task.plant, "tasks": tasks, "task_form": PlantTaskForm()})
+    return render(
+        request,
+        "plants/partials/task-list.html",
+        {"plant": task.plant, "tasks": tasks, "task_form": PlantTaskForm()},
+    )
 
 
 @login_required
 def task_delete_view(request, garden_slug, pk):
     task = get_object_or_404(
-        PlantTask, pk=pk, plant__garden__slug=garden_slug, plant__garden__created_by=request.user
+        PlantTask,
+        pk=pk,
+        plant__garden__slug=garden_slug,
+        plant__garden__created_by=request.user,
     )
     plant = task.plant
     if request.method == "POST":
         task.delete()
     tasks = plant.tasks.all()
-    return render(request, "plants/partials/task-list.html", {"plant": plant, "tasks": tasks, "task_form": PlantTaskForm()})
+    return render(
+        request,
+        "plants/partials/task-list.html",
+        {"plant": plant, "tasks": tasks, "task_form": PlantTaskForm()},
+    )
 
 
 @login_required
 def plant_identify_view(request, garden_slug):
-    """PlantNet identification — accepts an image URL and returns suggestions."""
+    """Main identification page — supports both name search and photo recognition."""
     import os
+
     from plants.services import identify_plant
 
     garden = get_object_or_404(Garden, slug=garden_slug, created_by=request.user)
-    context = {"garden": garden}
+    context = {"garden": garden, "mode": request.GET.get("mode", "search")}
 
-    if request.method == "POST":
+    # Photo-based identification (PlantNet)
+    if request.method == "POST" and "image_url" in request.POST:
         image_url = request.POST.get("image_url", "").strip()
         api_key = os.environ.get("PLANTNET_API_KEY", "")
 
         if not image_url:
-            context["error"] = "Veuillez fournir une URL d'image."
+            context["photo_error"] = "Veuillez fournir une URL d'image."
         elif not api_key:
-            context["error"] = "Clé API PlantNet non configurée (PLANTNET_API_KEY)."
+            context["photo_error"] = (
+                "Clé API PlantNet non configurée (PLANTNET_API_KEY)."
+            )
         else:
             result = identify_plant(image_url, api_key)
-            context["result"] = result
-            if result.get("success"):
-                context["form"] = PlantForm(
-                    initial={
-                        "common_name": result["common_name"],
-                        "scientific_name": result["scientific_name"],
-                    }
-                )
+            context["photo_result"] = result
+            if not result.get("success"):
+                context["photo_error"] = result.get("error", "Erreur inconnue.")
+
+        context["mode"] = "photo"
 
     return render(request, "plants/identify.html", context)
+
+
+@login_required
+def plant_search_htmx_view(request, garden_slug):
+    """HTMX endpoint — live species search by name via GBIF."""
+    from plants.services import search_species
+
+    garden = get_object_or_404(Garden, slug=garden_slug, created_by=request.user)
+    query = request.GET.get("q", "").strip()
+
+    result = search_species(query)
+    return render(
+        request,
+        "plants/partials/search-results.html",
+        {"garden": garden, "result": result, "query": query},
+    )
+
+
+@login_required
+def plant_add_from_identify_view(request, garden_slug):
+    """Quick-add a plant from identification results (name or photo)."""
+    garden = get_object_or_404(Garden, slug=garden_slug, created_by=request.user)
+
+    if request.method == "POST":
+        common_name = request.POST.get("common_name", "").strip()
+        scientific_name = request.POST.get("scientific_name", "").strip()
+        photo_url = request.POST.get("photo_url", "").strip()
+        score = request.POST.get("score", "")
+
+        if not common_name and not scientific_name:
+            return redirect("gardens:plants:identify", garden_slug=garden.slug)
+
+        plant = Plant.objects.create(
+            garden=garden,
+            common_name=common_name or scientific_name,
+            scientific_name=scientific_name,
+            photo_url=photo_url,
+            identification_score=float(score) if score else None,
+        )
+        return redirect(plant.get_absolute_url())
+
+    return redirect("gardens:plants:identify", garden_slug=garden.slug)
