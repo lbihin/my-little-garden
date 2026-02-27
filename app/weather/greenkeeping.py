@@ -81,6 +81,7 @@ class GreenkeepingReport:
     # Summary numbers
     grass_growing: bool = False
     soil_temp_surface: float = 0.0
+    soil_temp_roots: float = 0.0  # ~6 cm — lawn root zone
     air_temp: float = 0.0
     moisture_surface: float = 0.0
     precip_last_24h: float = 0.0
@@ -173,44 +174,54 @@ def _current_month() -> int:
 
 
 def _analyse_grass_growth(snap: dict, report: GreenkeepingReport) -> None:
-    """Assess whether grass is actively growing."""
-    soil = snap.get("soil_0cm") or 0
-    air = snap.get("air_temp") or 0
-    report.grass_growing = soil > 8 and air > 5
+    """Assess whether grass is actively growing.
 
-    if soil < 5:
+    Uses soil temperature at root depth (~6 cm) as the primary indicator.
+    Cool-season grass roots start growing when root-zone soil reaches ~6 °C,
+    shoot growth kicks in around 8 °C, and optimum is 10-18 °C.
+    """
+    soil_roots = snap.get("soil_6cm") or snap.get("soil_0cm") or 0
+    soil_surface = snap.get("soil_0cm") or 0
+    air = snap.get("air_temp") or 0
+    report.grass_growing = soil_roots > 8 and air > 5
+
+    if soil_roots < 5:
         report.advices.append(
             Advice(
                 "❄️",
                 "Sol trop froid — gazon dormant",
-                f"Température du sol à {soil:.1f} °C. La croissance reprend au-dessus de 8 °C.",
+                f"Sol à {soil_roots:.1f} °C à 6 cm de profondeur (racines). "
+                f"La croissance reprend au-dessus de 8 °C.",
                 Status.INFO,
             )
         )
-    elif soil < 8:
+    elif soil_roots < 8:
         report.advices.append(
             Advice(
                 "🌱",
                 "Sol en train de se réchauffer",
-                f"Sol à {soil:.1f} °C — la pousse va redémarrer bientôt (seuil : 8 °C).",
+                f"Sol à {soil_roots:.1f} °C aux racines (6 cm) — "
+                f"la pousse va redémarrer bientôt (seuil : 8 °C). "
+                f"Surface : {soil_surface:.1f} °C.",
                 Status.INFO,
             )
         )
-    elif soil < 12:
+    elif soil_roots < 12:
         report.advices.append(
             Advice(
                 "🌿",
                 "Le gazon pousse lentement",
-                f"Sol à {soil:.1f} °C, air à {air:.0f} °C. Croissance modérée.",
+                f"Sol à {soil_roots:.1f} °C aux racines, air à {air:.0f} °C. Croissance modérée.",
                 Status.OK,
             )
         )
-    elif soil <= 25:
+    elif soil_roots <= 25:
         report.advices.append(
             Advice(
                 "🌿",
                 "Le gazon pousse activement",
-                f"Sol à {soil:.1f} °C, air à {air:.0f} °C. Conditions optimales de croissance.",
+                f"Sol à {soil_roots:.1f} °C aux racines, air à {air:.0f} °C. "
+                f"Conditions optimales de croissance.",
                 Status.OK,
             )
         )
@@ -219,7 +230,8 @@ def _analyse_grass_growth(snap: dict, report: GreenkeepingReport) -> None:
             Advice(
                 "🔥",
                 "Stress thermique",
-                f"Sol à {soil:.1f} °C — le gazon peut jaunir. Arrosez tôt le matin.",
+                f"Sol à {soil_roots:.1f} °C aux racines — le gazon peut jaunir. "
+                f"Arrosez tôt le matin.",
                 Status.WARN,
             )
         )
@@ -654,6 +666,7 @@ def analyse(
 
     # Populate summary numbers
     report.soil_temp_surface = snap.get("soil_0cm") or 0
+    report.soil_temp_roots = snap.get("soil_6cm") or 0
     report.air_temp = snap.get("air_temp") or 0
     report.moisture_surface = snap.get("moisture_surface") or 0
     report.wind_speed = snap.get("wind_speed") or 0

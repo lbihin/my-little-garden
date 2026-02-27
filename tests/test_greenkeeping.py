@@ -83,35 +83,35 @@ def _fake_weather(soil_0=12.0, air=15.0, moisture=0.30, precip=None) -> WeatherD
 
 class TestGrassGrowth:
     def test_dormant_cold_soil(self):
-        snap = _make_snap(soil_0cm=3.0, air_temp=2.0)
+        snap = _make_snap(soil_0cm=3.0, soil_6cm=3.0, air_temp=2.0)
         report = _make_report(grass_growing=False)
         _analyse_grass_growth(snap, report)
         assert not report.grass_growing
         assert any("dormant" in a.title.lower() for a in report.advices)
 
     def test_warming_up(self):
-        snap = _make_snap(soil_0cm=7.0, air_temp=8.0)
+        snap = _make_snap(soil_0cm=7.0, soil_6cm=7.0, air_temp=8.0)
         report = _make_report()
         _analyse_grass_growth(snap, report)
         assert not report.grass_growing  # < 8 °C
         assert any("réchauffer" in a.title.lower() for a in report.advices)
 
     def test_slow_growth(self):
-        snap = _make_snap(soil_0cm=10.0, air_temp=10.0)
+        snap = _make_snap(soil_0cm=10.0, soil_6cm=10.0, air_temp=10.0)
         report = _make_report()
         _analyse_grass_growth(snap, report)
         assert report.grass_growing
         assert any("lentement" in a.title.lower() for a in report.advices)
 
     def test_active_growth(self):
-        snap = _make_snap(soil_0cm=18.0, air_temp=20.0)
+        snap = _make_snap(soil_0cm=18.0, soil_6cm=18.0, air_temp=20.0)
         report = _make_report()
         _analyse_grass_growth(snap, report)
         assert report.grass_growing
         assert any("activement" in a.title.lower() for a in report.advices)
 
     def test_heat_stress(self):
-        snap = _make_snap(soil_0cm=30.0, air_temp=35.0)
+        snap = _make_snap(soil_0cm=30.0, soil_6cm=30.0, air_temp=35.0)
         report = _make_report()
         _analyse_grass_growth(snap, report)
         assert any("stress" in a.title.lower() for a in report.advices)

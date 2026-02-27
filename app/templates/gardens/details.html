@@ -46,7 +46,7 @@
             · Analyse du {{ report.generated_at }}</p>
 
           <!-- Key metrics -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">🌡️ Air</div>
               <div class="stat-value text-lg">{{ report.air_temp|floatformat:1 }}°C</div>
@@ -54,6 +54,11 @@
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">🌱 Sol surface</div>
               <div class="stat-value text-lg">{{ report.soil_temp_surface|floatformat:1 }}°C</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Température à ~6 cm — zone des racines du gazon. La pousse reprend au-dessus de 8 °C.">
+              <div class="stat-title text-xs">🌾 Sol racines</div>
+              <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}text-info{% elif report.soil_temp_roots > 25 %}text-warning{% else %}text-success{% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
+              <div class="stat-desc">à 6 cm</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">💧 Humidité sol</div>
