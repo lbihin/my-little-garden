@@ -189,14 +189,14 @@ class TestIdentifyViews:
         assert resp.status_code == 200
         assert "tab-active" in resp.content.decode()
 
-    def test_photo_post_no_url(self, client, garden, user):
+    def test_photo_post_no_file(self, client, garden, user):
         client.login(username="testeur", password="secret123!")
         resp = client.post(
             f"/gardens/{garden.slug}/plants/identify/",
-            {"image_url": ""},
+            {},
         )
         assert resp.status_code == 200
-        assert "Veuillez fournir" in resp.content.decode()
+        assert "Veuillez sélectionner une photo" in resp.content.decode()
 
     def test_search_htmx_short_query(self, client, garden, user):
         client.login(username="testeur", password="secret123!")

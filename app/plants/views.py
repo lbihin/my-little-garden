@@ -179,23 +179,33 @@ def plant_identify_view(request, garden_slug):
     """Main identification page — supports both name search and photo recognition."""
     import os
 
-    from plants.services import identify_plant
+    from plants.services import identify_plant, identify_plant_from_file
 
     garden = get_object_or_404(Garden, slug=garden_slug, created_by=request.user)
     context = {"garden": garden, "mode": request.GET.get("mode", "search")}
 
     # Photo-based identification (PlantNet)
-    if request.method == "POST" and "image_url" in request.POST:
-        image_url = request.POST.get("image_url", "").strip()
+    if request.method == "POST":
         api_key = os.environ.get("PLANTNET_API_KEY", "")
+        has_photo = "photo" in request.FILES
+        has_url = "image_url" in request.POST and request.POST["image_url"].strip()
 
-        if not image_url:
-            context["photo_error"] = "Veuillez fournir une URL d'image."
+        if not has_photo and not has_url:
+            context["photo_error"] = "Veuillez sélectionner une photo."
         elif not api_key:
             context["photo_error"] = (
                 "Clé API PlantNet non configurée (PLANTNET_API_KEY)."
             )
+        elif has_photo:
+            # File upload mode
+            photo = request.FILES["photo"]
+            result = identify_plant_from_file(photo, api_key)
+            context["photo_result"] = result
+            if not result.get("success"):
+                context["photo_error"] = result.get("error", "Erreur inconnue.")
         else:
+            # URL fallback mode
+            image_url = request.POST.get("image_url", "").strip()
             result = identify_plant(image_url, api_key)
             context["photo_result"] = result
             if not result.get("success"):
@@ -214,7 +224,7 @@ def plant_search_htmx_view(request, garden_slug):
     garden = get_object_or_404(Garden, slug=garden_slug, created_by=request.user)
     query = request.GET.get("q", "").strip()
 
-    result = search_species(query)
+    result = search_species(query, include_media=True)
     return render(
         request,
         "plants/partials/search-results.html",

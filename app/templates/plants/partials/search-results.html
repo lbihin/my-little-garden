@@ -1,22 +1,48 @@
 {% if query and query|length >= 2 %}
   {% if result.success and result.results %}
-    <p class="text-sm opacity-50 mb-2">{{ result.results|length }} résultat{{ result.results|pluralize }} pour « {{ query }} »</p>
-    <div class="space-y-2">
+    <p class="text-sm opacity-50 mb-3">{{ result.results|length }} résultat{{ result.results|pluralize }} pour « {{ query }} »</p>
+    <div class="space-y-4">
       {% for species in result.results %}
-        <div class="flex items-center justify-between p-3 rounded-lg bg-base-200/50 hover:bg-base-200 transition-colors">
-          <div class="flex-1 min-w-0">
-            <div class="font-semibold text-sm truncate">{{ species.scientific_name }}</div>
-            <div class="text-xs opacity-50">
-              {% if species.family %}Famille : {{ species.family }}{% endif %}
-              {% if species.genus %}· Genre : {{ species.genus }}{% endif %}
+        <div class="rounded-xl bg-base-200/50 hover:bg-base-200 transition-colors overflow-hidden">
+          {# ── Photos row ── #}
+          {% if species.photos %}
+            <div class="flex gap-1 overflow-x-auto p-2 pb-0">
+              {% for photo in species.photos %}
+                <div class="flex-shrink-0">
+                  <div class="tooltip" data-tip="{{ photo.label }}">
+                    <img src="{{ photo.url }}"
+                         alt="{{ photo.label }}"
+                         class="w-20 h-20 object-cover rounded-lg border border-base-300"
+                         loading="lazy"
+                         onerror="this.parentElement.parentElement.remove()" />
+                  </div>
+                  <div class="text-center mt-0.5">
+                    <span class="text-[10px] opacity-50">{{ photo.label }}</span>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
+          {% endif %}
+
+          {# ── Info + action row ── #}
+          <div class="flex items-center justify-between p-3 pt-2">
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-sm truncate">{{ species.scientific_name }}</div>
+              <div class="text-xs opacity-50">
+                {% if species.family %}Famille : {{ species.family }}{% endif %}
+                {% if species.genus %}· Genre : {{ species.genus }}{% endif %}
+              </div>
+            </div>
+            <form method="post" action="{% url 'gardens:plants:identify-add' garden_slug=garden.slug %}">
+              {% csrf_token %}
+              <input type="hidden" name="common_name" value="" />
+              <input type="hidden" name="scientific_name" value="{{ species.scientific_name }}" />
+              {% if species.photos.0.url %}
+                <input type="hidden" name="photo_url" value="{{ species.photos.0.url }}" />
+              {% endif %}
+              <button type="submit" class="btn btn-primary btn-xs gap-1">＋ Ajouter</button>
+            </form>
           </div>
-          <form method="post" action="{% url 'gardens:plants:identify-add' garden_slug=garden.slug %}">
-            {% csrf_token %}
-            <input type="hidden" name="common_name" value="" />
-            <input type="hidden" name="scientific_name" value="{{ species.scientific_name }}" />
-            <button type="submit" class="btn btn-primary btn-xs gap-1">＋ Ajouter</button>
-          </form>
         </div>
       {% endfor %}
     </div>
