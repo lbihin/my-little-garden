@@ -63,10 +63,41 @@ class PlantDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["garden"] = self.object.garden
+        garden = self.object.garden
+        context["garden"] = garden
         context["tasks"] = self.object.tasks.all()
         context["pending_count"] = self.object.tasks.filter(done=False).count()
         context["task_form"] = PlantTaskForm()
+
+        # Care suggestions for this specific plant
+        try:
+            from plants.care import suggest_care_tasks
+            from weather.services import fetch_weather
+
+            if garden.address and garden.address.latitude and garden.address.longitude:
+                lat = float(garden.address.latitude)
+                lon = float(garden.address.longitude)
+            else:
+                lat, lon = 48.8566, 2.3522  # Paris default
+
+            weather = fetch_weather(lat, lon)
+            current = weather.current_snapshot() if weather.ok else {}
+            existing = set(
+                self.object.tasks.filter(done=False).values_list("title", flat=True)
+            )
+            context["care_suggestions"] = suggest_care_tasks(
+                plants=[self.object],
+                air_temp=current.get("air_temp"),
+                soil_temp=current.get("soil_temp_6cm"),
+                recent_rain_mm=(
+                    weather.recent_precipitation_mm(48) if weather.ok else None
+                ),
+                existing_task_titles=existing,
+            )
+        except Exception:
+            logger.exception("Care suggestions failed")
+            context["care_suggestions"] = []
+
         return context
 
 
@@ -166,6 +197,33 @@ def task_delete_view(request, garden_slug, pk):
     plant = task.plant
     if request.method == "POST":
         task.delete()
+    tasks = plant.tasks.all()
+    return render(
+        request,
+        "plants/partials/task-list.html",
+        {"plant": plant, "tasks": tasks, "task_form": PlantTaskForm()},
+    )
+
+
+@login_required
+def suggestion_accept_view(request, garden_slug, slug):
+    """Accept a care suggestion — creates a PlantTask and refreshes the task list."""
+    plant = get_object_or_404(
+        Plant, slug=slug, garden__slug=garden_slug, garden__created_by=request.user
+    )
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        notes = request.POST.get("notes", "").strip()
+        priority = int(request.POST.get("priority", 2))
+
+        if title:
+            PlantTask.objects.create(
+                plant=plant,
+                title=title,
+                notes=notes,
+                priority=min(max(priority, 1), 3),
+            )
+
     tasks = plant.tasks.all()
     return render(
         request,

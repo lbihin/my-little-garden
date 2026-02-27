@@ -79,9 +79,13 @@
           <!-- 1. Watering summary card -->
           {% if report.watering %}
             <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}
+                
                 border-warning
+
               {% else %}
+                
                 border-success
+
               {% endif %}">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between">
@@ -114,9 +118,13 @@
             {% for advice in report.advices %}
               {% if advice.status.value == 'warn' or advice.status.value == 'danger' %}
                 <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}
+                    
                     border-error
+
                   {% else %}
+                    
                     border-warning
+
                   {% endif %}">
                   <div class="card-body p-4">
                     <div class="flex items-start gap-2">
@@ -135,9 +143,13 @@
           <!-- 3. Plant tasks card -->
           {% if plant_count > 0 %}
             <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}
+                
                 border-info
+
               {% else %}
+                
                 border-success
+
               {% endif %}">
               <div class="card-body p-4">
                 <div class="flex items-center justify-between">
@@ -177,6 +189,38 @@
             </div>
           {% endif %}
 
+          <!-- 3.5 Care suggestions -->
+          {% if care_suggestions %}
+            <div class="card bg-base-100 shadow-sm border-l-4 border-accent">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title text-sm gap-1">💡 Conseils du moment</h3>
+                  <span class="badge badge-accent badge-sm">{{ care_suggestions|length }}</span>
+                </div>
+                <p class="text-xs opacity-50 mt-1">Basés sur vos plantes, la saison et la météo.</p>
+                <ul class="text-xs mt-2 space-y-2">
+                  {% for s in care_suggestions|slice:':6' %}
+                    <li class="flex items-start gap-2">
+                      <span class="text-base mt-0.5 shrink-0">{{ s.icon }}</span>
+                      <div class="flex-1">
+                        <div class="flex items-center gap-1">
+                          <span class="font-semibold">{{ s.title }}</span>
+                          {% if s.priority == 3 %}
+                            <span class="badge badge-error badge-xs">!</span>
+                          {% endif %}
+                        </div>
+                        <span class="opacity-40">{{ s.plant_name }}</span>
+                      </div>
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if care_suggestions|length > 6 %}
+                  <p class="text-xs opacity-40 mt-1">… et {{ care_suggestions|length|add:'-6' }} autre{{ care_suggestions|length|add:'-6'|pluralize }}</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
           <!-- 4. 🎋 Profiter du jardin — humorous card (always shown) -->
           <div class="card bg-base-100 shadow-sm border-l-4 border-success">
             <div class="card-body p-4">
@@ -203,11 +247,17 @@
             <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Zone racines (~6 cm)">
               <div class="stat-title text-xs">🌾 Sol</div>
               <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
+                  
                   text-info
+
                 {% elif report.soil_temp_roots > 25 %}
+                  
                   text-warning
+
                 {% else %}
+                  
                   text-success
+
                 {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
@@ -240,13 +290,21 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
             {% for advice in report.advices %}
               <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
+                  
                   border-success
+
                 {% elif advice.status.value == 'info' %}
+                  
                   border-info
+
                 {% elif advice.status.value == 'warn' %}
+                  
                   border-warning
+
                 {% elif advice.status.value == 'danger' %}
+                  
                   border-error
+
                 {% endif %}">
                 <div class="card-body p-4">
                   <div class="flex items-start gap-2">

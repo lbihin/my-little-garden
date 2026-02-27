@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from datetime import datetime, timedelta
 
 import pytest
 from django.test import Client
@@ -9,8 +10,12 @@ from weather.services import WeatherData, fetch_weather
 
 
 def _fake_weather_data() -> WeatherData:
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
+    t0 = (now + timedelta(hours=1)).strftime("%Y-%m-%dT%H:00")
+    t1 = (now + timedelta(hours=2)).strftime("%Y-%m-%dT%H:00")
+
     return WeatherData(
-        times=["2026-02-27T12:00", "2026-02-27T13:00"],
+        times=[t0, t1],
         air_temperature=[8.5, 9.0],
         humidity=[72.0, 68.0],
         precipitation=[0.0, 0.2],

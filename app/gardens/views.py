@@ -118,6 +118,36 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
             context["plant_tasks_pending"] = []
             context["plant_tasks_pending_total"] = 0
 
+        # Care suggestions based on plant genus + weather + season
+        try:
+            from plants.care import suggest_care_tasks
+            from plants.models import Plant, PlantTask
+
+            garden = self.object
+            plants = list(garden.plants.all())
+            if plants:
+                existing = set(
+                    PlantTask.objects.filter(
+                        plant__garden=garden, done=False
+                    ).values_list("title", flat=True)
+                )
+                weather = context.get("weather")
+                current = context.get("current", {})
+                context["care_suggestions"] = suggest_care_tasks(
+                    plants=plants,
+                    air_temp=current.get("air_temp"),
+                    soil_temp=current.get("soil_temp_6cm"),
+                    recent_rain_mm=(
+                        weather.recent_precipitation_mm(48)
+                        if weather and weather.ok
+                        else None
+                    ),
+                    existing_task_titles=existing,
+                )
+        except Exception:
+            logger.exception("Care suggestions failed")
+            context["care_suggestions"] = []
+
         return context
 
 

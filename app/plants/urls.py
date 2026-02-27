@@ -18,4 +18,9 @@ urlpatterns = [
     path("<slug:slug>/edit/", views.PlantUpdateView.as_view(), name="edit"),
     path("<slug:slug>/delete/", views.plant_delete_view, name="delete"),
     path("<slug:slug>/tasks/add/", views.task_create_view, name="task-create"),
+    path(
+        "<slug:slug>/tasks/suggest/",
+        views.suggestion_accept_view,
+        name="suggestion-accept",
+    ),
 ]
