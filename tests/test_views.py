@@ -37,15 +37,11 @@ class TestGardenViews:
         assert resp.status_code == 302  # redirect on success
 
     def test_detail_garden(self, auth_client, garden):
-        resp = auth_client.get(
-            reverse("gardens:detail", kwargs={"slug": garden.slug})
-        )
+        resp = auth_client.get(reverse("gardens:detail", kwargs={"slug": garden.slug}))
         assert resp.status_code == 200
 
     def test_edit_garden(self, auth_client, garden):
-        resp = auth_client.get(
-            reverse("gardens:edit", kwargs={"slug": garden.slug})
-        )
+        resp = auth_client.get(reverse("gardens:edit", kwargs={"slug": garden.slug}))
         assert resp.status_code == 200
 
 

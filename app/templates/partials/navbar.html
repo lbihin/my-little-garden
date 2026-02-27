@@ -1,9 +1,17 @@
 <ul class="menu menu-horizontal px-1 gap-1">
-    {% if user.is_authenticated %}
-        <li><a href="{% url 'gardens:list' %}" class="btn btn-ghost btn-sm">Jardins</a></li>
-        <li><a href="{% url 'accounts:logout' %}" class="btn btn-ghost btn-sm">Déconnexion</a></li>
-    {% else %}
-        <li><a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">Connexion</a></li>
-        <li><a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">Inscription</a></li>
-    {% endif %}
+  {% if user.is_authenticated %}
+    <li>
+      <a href="{% url 'gardens:list' %}" class="btn btn-ghost btn-sm">Jardins</a>
+    </li>
+    <li>
+      <a href="{% url 'accounts:logout' %}" class="btn btn-ghost btn-sm">Déconnexion</a>
+    </li>
+  {% else %}
+    <li>
+      <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">Connexion</a>
+    </li>
+    <li>
+      <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-sm">Inscription</a>
+    </li>
+  {% endif %}
 </ul>

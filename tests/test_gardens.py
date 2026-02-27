@@ -1,8 +1,5 @@
 import pytest
-from django.utils.text import slugify
-
-from gardens.models import Garden, Address
-from gardens.utils import slugify_instance_name
+from gardens.models import Address, Garden
 
 
 class TestGardenModel:
@@ -49,7 +46,9 @@ class TestGardenSlugUniqueness:
         # Create some collision entries
         for _ in range(5):
             Garden.objects.create(name="Duplicata", created_by=user)
-        slugs = list(Garden.objects.filter(name="Duplicata").values_list("slug", flat=True))
+        slugs = list(
+            Garden.objects.filter(name="Duplicata").values_list("slug", flat=True)
+        )
         assert len(slugs) == len(set(slugs))
 
 
@@ -86,4 +85,6 @@ class TestAddress:
         field_names = [f[0] for f in fields]
         assert "city" in field_names
         assert "country" in field_names
-        assert "street" not in field_names  # empty string excluded? Actually "" is falsy
+        assert (
+            "street" not in field_names
+        )  # empty string excluded? Actually "" is falsy

@@ -1,37 +1,38 @@
 <div class="card card-border bg-base-200 p-4">
-    <h3 class="font-bold mb-3">Activité #{{ activity.pk }}
-        <span class="badge badge-sm badge-neutral ml-2">{{ activity.get_creation_date }}</span>
-    </h3>
+  <h3 class="font-bold mb-3">
+    Activité #{{ activity.pk }}
+    <span class="badge badge-sm badge-neutral ml-2">{{ activity.get_creation_date }}</span>
+  </h3>
 
-    {% if activity.comment %}
+  {% if activity.comment %}
     <div class="mb-3">
-        <p class="text-sm font-semibold opacity-60">Commentaire</p>
-        <p>{{ activity.comment }}</p>
+      <p class="text-sm font-semibold opacity-60">Commentaire</p>
+      <p>{{ activity.comment }}</p>
     </div>
-    {% endif %}
+  {% endif %}
 
-    {% if activity.task %}
+  {% if activity.task %}
     <div class="mb-3">
-        <p class="text-sm font-semibold opacity-60">Fertilisation</p>
-        <p>{{ activity.task }}</p>
-        {% if activity.task.fertilizer %}
+      <p class="text-sm font-semibold opacity-60">Fertilisation</p>
+      <p>{{ activity.task }}</p>
+      {% if activity.task.fertilizer %}
         <p class="text-xs opacity-50 mt-1">{{ activity.task.fertilizer }}</p>
-        {% endif %}
+      {% endif %}
     </div>
 
     {% with npk=activity.get_base_element_quantity %}
-    {% if npk %}
-    <div class="mb-3">
-        <p class="text-sm font-semibold opacity-60">Répartition NPK</p>
-        <div class="flex gap-3 mt-1">
+      {% if npk %}
+        <div class="mb-3">
+          <p class="text-sm font-semibold opacity-60">Répartition NPK</p>
+          <div class="flex gap-3 mt-1">
             {% for element, qty in npk.items %}
-            <div class="badge badge-outline">{{ element }}: {{ qty }}</div>
+              <div class="badge badge-outline">{{ element }}: {{ qty }}</div>
             {% endfor %}
+          </div>
         </div>
-    </div>
-    {% endif %}
+      {% endif %}
     {% endwith %}
-    {% endif %}
+  {% endif %}
 
-    <p class="text-xs opacity-40 mt-2">Mis à jour {{ activity.since_update }}</p>
+  <p class="text-xs opacity-40 mt-2">Mis à jour {{ activity.since_update }}</p>
 </div>

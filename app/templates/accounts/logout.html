@@ -1,25 +1,27 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Déconnexion — My Little Garden{% endblock %}
+{% block title %}
+  Déconnexion — My Little Garden
+{% endblock %}
 
 {% block content %}
-<div class="flex justify-center items-center min-h-[60vh]">
+  <div class="flex justify-center items-center min-h-[60vh]">
     <div class="card bg-base-100 shadow-xl w-full max-w-md">
-        <div class="card-body text-center">
-            {% if request.user.is_authenticated %}
-                <h2 class="card-title text-2xl justify-center mb-4">Déconnexion</h2>
-                <p class="mb-4">Êtes-vous sûr de vouloir vous déconnecter ?</p>
-                <form method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-error btn-wide">Oui, me déconnecter</button>
-                </form>
-            {% else %}
-                <p>
-                    Vous n'êtes pas connecté.
-                    <a href="{% url 'accounts:login' %}" class="link link-primary">Se connecter ?</a>
-                </p>
-            {% endif %}
-        </div>
+      <div class="card-body text-center">
+        {% if request.user.is_authenticated %}
+          <h2 class="card-title text-2xl justify-center mb-4">Déconnexion</h2>
+          <p class="mb-4">Êtes-vous sûr de vouloir vous déconnecter ?</p>
+          <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-error btn-wide">Oui, me déconnecter</button>
+          </form>
+        {% else %}
+          <p>
+            Vous n'êtes pas connecté.
+            <a href="{% url 'accounts:login' %}" class="link link-primary">Se connecter ?</a>
+          </p>
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

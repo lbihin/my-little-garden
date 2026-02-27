@@ -1,53 +1,52 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}{{ garden.name }} — My Little Garden{% endblock %}
+{% block title %}
+  {{ garden.name }} — My Little Garden
+{% endblock %}
 
 {% block content %}
-<div class="flex flex-1">
+  <div class="flex flex-1">
     <!-- Sidebar -->
     <aside class="menu bg-base-200 w-56 p-4">
-        <li class="menu-title">{{ garden.name }}</li>
-        <ul>
-            <li>
-                <a href="{% url 'gardens:detail' slug=garden.slug %}"
-                   class="{% if request.resolver_match.url_name == 'detail' %}active{% endif %}">
-                    🏠 Tableau de bord
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">
-                    🧪 Entretien
-                </a>
-            </li>
-            <li class="disabled"><a>📅 Calendrier</a></li>
-        </ul>
+      <li class="menu-title">{{ garden.name }}</li>
+      <ul>
+        <li>
+          <a href="{% url 'gardens:detail' slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'detail' %}active{% endif %}">🏠 Tableau de bord</a>
+        </li>
+        <li>
+          <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">🧪 Entretien</a>
+        </li>
+        <li class="disabled">
+          <a>📅 Calendrier</a>
+        </li>
+      </ul>
     </aside>
 
     <!-- Main area -->
     <div class="flex-1 p-6">
-        <div class="mb-4">
-            <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
-            <p class="text-xs opacity-50 italic">Dernière mise à jour : {{ garden.get_last_update }}</p>
-            <div class="mt-2">
-                {% include 'gardens/partials/garden-address.html' %}
-            </div>
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
+        <p class="text-xs opacity-50 italic">Dernière mise à jour : {{ garden.get_last_update }}</p>
+        <div class="mt-2">
+          {% include 'gardens/partials/garden-address.html' %}
         </div>
+      </div>
 
-        {% block garden_detail_content %}
+      {% block garden_detail_content %}
         <div class="divider"></div>
         <h2 class="text-xl font-bold mb-4">Tableau de bord</h2>
         <div class="card bg-base-100 shadow-sm">
-            <div class="card-body">
-                <h3 class="card-title text-sm">Description du jardin</h3>
-                <p>{{ garden.description|default:"Aucune description." }}</p>
-                {% if garden.surface %}
-                <div class="mt-2">
-                    <span class="badge badge-outline">{{ garden.surface }} m²</span>
-                </div>
-                {% endif %}
-            </div>
+          <div class="card-body">
+            <h3 class="card-title text-sm">Description du jardin</h3>
+            <p>{{ garden.description|default:'Aucune description.' }}</p>
+            {% if garden.surface %}
+              <div class="mt-2">
+                <span class="badge badge-outline">{{ garden.surface }} m²</span>
+              </div>
+            {% endif %}
+          </div>
         </div>
-        {% endblock garden_detail_content %}
+      {% endblock %}
     </div>
-</div>
+  </div>
 {% endblock %}

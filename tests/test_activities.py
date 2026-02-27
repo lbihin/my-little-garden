@@ -1,6 +1,5 @@
 import pytest
-
-from activities.models import Fertilizer, FertilizationTask
+from activities.models import FertilizationTask, Fertilizer
 from activities.validators import validate_unit_measurement
 from django.core.exceptions import ValidationError
 
@@ -65,9 +64,8 @@ class TestActivity:
         assert "kg" in activity.get_quantity()
 
     def test_get_quantity_no_task(self, garden):
-        from django.utils import timezone
-
         from activities.models import Activity
+        from django.utils import timezone
 
         act = Activity.objects.create(creation=timezone.now(), garden=garden)
         assert act.get_quantity() == "—"

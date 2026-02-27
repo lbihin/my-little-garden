@@ -1,37 +1,31 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Mes Jardins — My Little Garden{% endblock %}
+{% block title %}
+  Mes Jardins — My Little Garden
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-6">
+  <div class="container mx-auto px-4 py-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <h1 class="text-3xl font-bold">Mes Jardins</h1>
+      <h1 class="text-3xl font-bold">Mes Jardins</h1>
 
-        <!-- Search -->
-        <div class="form-control">
-            <input type="search"
-                   name="garden-search"
-                   placeholder="Rechercher un jardin…"
-                   class="input input-bordered w-64"
-                   hx-get="{% url 'gardens:search' %}"
-                   hx-trigger="keyup changed delay:250ms"
-                   hx-swap="innerHTML"
-                   hx-target="#garden-list">
-        </div>
+      <!-- Search -->
+      <div class="form-control">
+        <input type="search" name="garden-search" placeholder="Rechercher un jardin…" class="input input-bordered w-64" hx-get="{% url 'gardens:search' %}" hx-trigger="keyup changed delay:250ms" hx-swap="innerHTML" hx-target="#garden-list" />
+      </div>
 
-        <!-- Add button -->
-        <a href="{% url 'gardens:create' %}" class="btn btn-primary gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-            Ajouter un jardin
-        </a>
+      <!-- Add button -->
+      <a href="{% url 'gardens:create' %}" class="btn btn-primary gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>Ajouter un jardin
+      </a>
     </div>
 
     <!-- Garden cards -->
     <div id="garden-list">
-        {% include 'gardens/partials/cards.html' %}
+      {% include 'gardens/partials/cards.html' %}
     </div>
-</div>
+  </div>
 {% endblock %}

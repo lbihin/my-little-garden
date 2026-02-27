@@ -1,13 +1,13 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
+from gardens import utils
 from geopy import Nominatim
 
 from app.utils import compute_time_difference
-from gardens import utils
 
 
 class Address(models.Model):
@@ -17,8 +17,12 @@ class Address(models.Model):
     state = models.CharField(max_length=60, blank=True, null=True)
     postal_code = models.CharField(max_length=10, default="")
     country = models.CharField(max_length=30, default="")
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True
+    )
 
     class Meta:
         verbose_name_plural = "addresses"
@@ -81,7 +85,11 @@ class Garden(models.Model):
     creation = models.DateField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     address = models.ForeignKey(
-        Address, on_delete=models.SET_NULL, related_name="gardens", null=True, blank=True
+        Address,
+        on_delete=models.SET_NULL,
+        related_name="gardens",
+        null=True,
+        blank=True,
     )
     surface = models.PositiveIntegerField(default=0)
 
@@ -115,5 +123,3 @@ def garden_pre_save(sender, instance, *args, **kwargs):
 def garden_post_save(sender, instance, created, *args, **kwargs):
     if created:
         utils.slugify_instance_name(instance, save=True)
-
-

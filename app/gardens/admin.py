@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from gardens.models import Address, Garden
 
 

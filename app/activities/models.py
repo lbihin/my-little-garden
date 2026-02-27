@@ -1,10 +1,10 @@
 # Create your models here.
+from activities.validators import validate_unit_measurement
 from django.db import models
 from django.urls import reverse
-
-from activities.validators import validate_unit_measurement
-from app.utils import compute_time_difference
 from gardens.models import Garden
+
+from app.utils import compute_time_difference
 
 
 class Fertilizer(models.Model):
@@ -19,7 +19,7 @@ class Fertilizer(models.Model):
         return f"{self.company} {self.name} (N={self.n_rate}%, P={self.p_rate}%, K={self.k_rate}%)"
 
     def get_element_base_composition(self):
-        return {'N': self.n_rate, 'P': self.p_rate, 'K': self.k_rate}
+        return {"N": self.n_rate, "P": self.p_rate, "K": self.k_rate}
 
 
 class FertilizationTask(models.Model):
@@ -62,7 +62,11 @@ class Activity(models.Model):
     updated = models.DateTimeField(auto_now=True)
     comment = models.TextField(blank=True, default="")
     garden = models.ForeignKey(
-        Garden, on_delete=models.CASCADE, related_name="activities", null=True, blank=True
+        Garden,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        null=True,
+        blank=True,
     )
     task = models.OneToOneField(
         FertilizationTask, on_delete=models.CASCADE, null=True, blank=True
@@ -99,4 +103,3 @@ class Activity(models.Model):
         if self.task:
             return self.task.get_base_component_quantity()
         return {}
-

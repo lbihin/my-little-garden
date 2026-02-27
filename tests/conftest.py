@@ -1,7 +1,6 @@
 import pytest
+from activities.models import Activity, FertilizationTask, Fertilizer
 from django.contrib.auth.models import User
-
-from activities.models import Fertilizer, FertilizationTask, Activity
 from gardens.models import Garden
 
 

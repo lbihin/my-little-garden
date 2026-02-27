@@ -1,60 +1,73 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr" data-theme="garden">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Little Garden{% endblock %}</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        My Little Garden
+      {% endblock %}
+    </title>
     <!-- DaisyUI + Tailwind CSS 4 (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- HTMX -->
     <script defer src="https://unpkg.com/htmx.org@2.0.4"></script>
-    {% block extra_head %}{% endblock %}
-</head>
-<body class="min-h-screen flex flex-col">
-
-<!-- Navbar -->
-<div class="navbar bg-base-100 shadow-sm">
-    <div class="flex-1">
-        <a href="{% url 'home' %}" class="btn btn-ghost text-xl gap-2">
-            🌱 My Little Garden
-        </a>
-    </div>
-    <div class="flex-none">
+    {% block extra_head %}
+    {% endblock %}
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-sm">
+      <div class="flex-1">
+        <a href="{% url 'home' %}" class="btn btn-ghost text-xl gap-2">🌱 My Little Garden</a>
+      </div>
+      <div class="flex-none">
         {% include 'partials/navbar.html' %}
+      </div>
     </div>
-</div>
 
-<!-- Messages -->
-{% if messages %}
-<div class="container mx-auto px-4 pt-4">
-    {% for message in messages %}
-    <div role="alert" class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} mb-2">
-        <span>{{ message }}</span>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+    <!-- Messages -->
+    {% if messages %}
+      <div class="container mx-auto px-4 pt-4">
+        {% for message in messages %}
+          <div role="alert"
+            class="alert {% if message.tags == 'error' %}
+              alert-error
+            {% elif message.tags == 'success' %}
+              alert-success
+            {% elif message.tags == 'warning' %}
+              alert-warning
+            {% else %}
+              alert-info
+            {% endif %} mb-2">
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
-<!-- Main content -->
-<main class="flex-1">
-    {% block content %}{% endblock %}
-</main>
+    <!-- Main content -->
+    <main class="flex-1">
+      {% block content %}
+      {% endblock %}
+    </main>
 
-<!-- Footer -->
-<footer class="footer footer-center bg-base-200 text-base-content p-4">
-    <aside>
+    <!-- Footer -->
+    <footer class="footer footer-center bg-base-200 text-base-content p-4">
+      <aside>
         <p>My Little Garden — Suivi d'entretien de jardin</p>
-    </aside>
-</footer>
+      </aside>
+    </footer>
 
-<!-- HTMX CSRF -->
-<script>
-    document.body.addEventListener('htmx:configRequest', (event) => {
-        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-    });
-</script>
-{% block extra_js %}{% endblock %}
-</body>
+    <!-- HTMX CSRF -->
+    <script>
+      document.body.addEventListener('htmx:configRequest', (event) => {
+        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}'
+      })
+    </script>
+    {% block extra_js %}
+    {% endblock %}
+  </body>
 </html>

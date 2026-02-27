@@ -1,12 +1,18 @@
 {% if garden.has_address %}
-<address class="not-italic text-sm">
-    {% if address.street %}<p>{{ address.street }}</p>{% endif %}
+  <address class="not-italic text-sm">
+    {% if address.street %}
+      <p>{{ address.street }}</p>
+    {% endif %}
     <p>
-        {% if address.state %}{{ address.state }}, {% endif %}
-        {{ address.postal_code }} — {{ address.city }}
+      {% if address.state %}
+        {{ address.state }},
+      {% endif %}
+      {{ address.postal_code }} — {{ address.city }}
     </p>
-    {% if address.country %}<p>{{ address.country }}</p>{% endif %}
-</address>
+    {% if address.country %}
+      <p>{{ address.country }}</p>
+    {% endif %}
+  </address>
 {% else %}
-<p class="text-sm opacity-50 italic">Aucune adresse renseignée.</p>
+  <p class="text-sm opacity-50 italic">Aucune adresse renseignée.</p>
 {% endif %}

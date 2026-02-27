@@ -1,42 +1,45 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Nouvelle Activité — {{ garden.name }} — My Little Garden{% endblock %}
+{% block title %}
+  Nouvelle Activité — {{ garden.name }} — My Little Garden
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-lg">
+  <div class="container mx-auto px-4 py-8 max-w-lg">
     <!-- Breadcrumb -->
     <div class="breadcrumbs text-sm mb-4">
-        <ul>
-            <li><a href="{% url 'gardens:list' %}">Jardins</a></li>
-            <li><a href="{% url 'gardens:detail' garden.slug %}">{{ garden.name }}</a></li>
-            <li>Nouvelle activité</li>
-        </ul>
+      <ul>
+        <li>
+          <a href="{% url 'gardens:list' %}">Jardins</a>
+        </li>
+        <li>
+          <a href="{% url 'gardens:detail' garden.slug %}">{{ garden.name }}</a>
+        </li>
+        <li>Nouvelle activité</li>
+      </ul>
     </div>
 
     <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-2xl mb-4">Nouvelle Activité</h2>
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Nouvelle Activité</h2>
 
-            <form method="post">
-                {% csrf_token %}
+        <form method="post">
+          {% csrf_token %}
 
-                <fieldset class="fieldset mb-4">
-                    <legend class="fieldset-legend">Commentaire</legend>
-                    <textarea name="comment"
-                              class="textarea textarea-bordered w-full h-40"
-                              placeholder="Décrivez l'activité réalisée…">{{ form.comment.value|default:'' }}</textarea>
-                    {% if form.comment.errors %}
-                        <p class="label text-error text-sm">{{ form.comment.errors.0 }}</p>
-                    {% endif %}
-                </fieldset>
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Commentaire</legend>
+            <textarea name="comment" class="textarea textarea-bordered w-full h-40" placeholder="Décrivez l'activité réalisée…">{{ form.comment.value|default:'' }}</textarea>
+            {% if form.comment.errors %}
+              <p class="label text-error text-sm">{{ form.comment.errors.0 }}</p>
+            {% endif %}
+          </fieldset>
 
-                <div class="card-actions justify-end">
-                    <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}"
-                       class="btn btn-ghost">Annuler</a>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
-                </div>
-            </form>
-        </div>
+          <div class="card-actions justify-end">
+            <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}
