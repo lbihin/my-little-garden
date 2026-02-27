@@ -74,7 +74,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" id="profile-grid">
             <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="standard" onclick="selectProfile('standard')">
-              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">🌿</span>
                 <div class="flex-1 min-w-0">
@@ -88,7 +88,7 @@
             </div>
 
             <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="eco" onclick="selectProfile('eco')">
-              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">💧</span>
                 <div class="flex-1 min-w-0">
@@ -102,7 +102,7 @@
             </div>
 
             <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="resilient" onclick="selectProfile('resilient')">
-              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">🌾</span>
                 <div class="flex-1 min-w-0">
@@ -116,7 +116,7 @@
             </div>
 
             <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="laissez_faire" onclick="selectProfile('laissez_faire')">
-              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">🍃</span>
                 <div class="flex-1 min-w-0">
@@ -130,7 +130,7 @@
             </div>
 
             <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md sm:col-span-2" data-profile="pro" onclick="selectProfile('pro')">
-              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">⛳</span>
                 <div class="flex-1 min-w-0">
@@ -150,9 +150,9 @@
               document.querySelectorAll('.profile-card').forEach(function (card) {
                 var check = card.querySelector('.profile-check')
                 if (card.dataset.profile === profile) {
-                  card.style.borderColor = 'oklch(var(--p))'
-                  card.style.backgroundColor = 'oklch(var(--p) / 0.10)'
-                  card.style.boxShadow = '0 0 0 1px oklch(var(--p) / 0.25)'
+                  card.style.borderColor = 'var(--color-primary)'
+                  card.style.backgroundColor = 'color-mix(in oklch, var(--color-primary) 12%, transparent)'
+                  card.style.boxShadow = '0 0 0 2px color-mix(in oklch, var(--color-primary) 30%, transparent)'
                   if (check) check.style.display = 'flex'
                 } else {
                   card.style.borderColor = ''
