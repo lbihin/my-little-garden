@@ -13,8 +13,8 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-3">
-        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm btn-circle" title="Retour au tableau de bord">←</a>
-        <div>
+        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1" title="Retour au tableau de bord">← Tableau de bord</a>
+        <div class="border-l pl-3">
           <h2 class="text-2xl font-bold">🌤️ Conditions du jardin</h2>
           <p class="text-sm opacity-60">
             📍 {{ location_source }}
@@ -67,15 +67,21 @@
           <div class="stat-title text-xs">🌾 Sol racines</div>
           <div class="stat-value text-xl {% if current.soil_6cm < 8 %}
               
+              
               text-info
+
 
             {% elif current.soil_6cm > 25 %}
               
+              
               text-warning
+
 
             {% else %}
               
+              
               text-success
+
 
             {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
           <div class="stat-desc">à 6 cm</div>
@@ -99,8 +105,7 @@
           <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
           <div class="flex flex-col gap-1">
             {% for advice in report.advices %}
-              <div tabindex="0"
-                class="collapse collapse-arrow bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
+              <div class="collapse collapse-arrow bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
                   border-success
                 {% elif advice.status.value == 'info' %}
                   border-info
@@ -109,6 +114,7 @@
                 {% elif advice.status.value == 'danger' %}
                   border-error
                 {% endif %}">
+                <input type="checkbox" />
                 <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
                   <span class="w-3 h-3 rounded-full shrink-0 {% if advice.status.value == 'ok' %}
                       bg-success
@@ -133,31 +139,30 @@
       {% endif %}
 
       <!-- ═══════════════════════════════════════ -->
-      <!-- Graphiques (repliés par défaut) -->
+      <!-- Graphiques -->
       <!-- ═══════════════════════════════════════ -->
-      <details class="group">
-        <summary class="cursor-pointer select-none flex items-center gap-2 text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity py-2">
-          <span class="transition-transform group-open:rotate-90">▶</span>
-          📊 Graphiques détaillés
-        </summary>
-        <div class="flex flex-col gap-4 mt-3">
-          <!-- Precipitation + ET₀ chart -->
-          <div class="card bg-base-100 shadow-sm">
-            <div class="card-body">
-              <h3 class="card-title text-sm">🌧️ Précipitations & Évapotranspiration</h3>
-              <canvas id="precipChart" height="120"></canvas>
-            </div>
-          </div>
-
-          <!-- Soil temperature chart -->
-          <div class="card bg-base-100 shadow-sm">
-            <div class="card-body">
-              <h3 class="card-title text-sm">🌱 Température du sol</h3>
-              <canvas id="soilTempChart" height="120"></canvas>
+      <h3 class="text-lg font-semibold">📊 Tendances</h3>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Precipitation + ET₀ chart -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h4 class="card-title text-sm">🌧️ Pluie vs Évapotranspiration</h4>
+            <div class="w-full" style="min-height: 280px;">
+              <canvas id="precipChart"></canvas>
             </div>
           </div>
         </div>
-      </details>
+
+        <!-- Soil temperature chart -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h4 class="card-title text-sm">🌱 Température du sol</h4>
+            <div class="w-full" style="min-height: 280px;">
+              <canvas id="soilTempChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
     {% endif %}
   </div>
 {% endblock %}
@@ -175,9 +180,10 @@
 
     const commonOpts = {
         responsive: true,
+        maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-        scales: { x: { ticks: { maxTicksToLimit: 12, font: { size: 10 } } } },
+        scales: { x: { ticks: { maxTicksToLimit: 10, font: { size: 10 }, maxRotation: 45 } } },
         elements: { point: { radius: 0 }, line: { tension: 0.3, borderWidth: 2 } },
     };
 
