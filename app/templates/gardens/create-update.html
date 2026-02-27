@@ -73,7 +73,8 @@
           <input type="hidden" name="watering_profile" id="watering-profile-input" value="{{ form.watering_profile.value|default:'standard' }}" />
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" id="profile-grid">
-            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="standard" onclick="selectProfile('standard')">
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="standard" onclick="selectProfile('standard')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">🌿</span>
                 <div class="flex-1 min-w-0">
@@ -86,7 +87,8 @@
               </div>
             </div>
 
-            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="eco" onclick="selectProfile('eco')">
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="eco" onclick="selectProfile('eco')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">💧</span>
                 <div class="flex-1 min-w-0">
@@ -99,7 +101,8 @@
               </div>
             </div>
 
-            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="resilient" onclick="selectProfile('resilient')">
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="resilient" onclick="selectProfile('resilient')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">🌾</span>
                 <div class="flex-1 min-w-0">
@@ -112,7 +115,8 @@
               </div>
             </div>
 
-            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="laissez_faire" onclick="selectProfile('laissez_faire')">
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="laissez_faire" onclick="selectProfile('laissez_faire')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">🍃</span>
                 <div class="flex-1 min-w-0">
@@ -125,7 +129,8 @@
               </div>
             </div>
 
-            <div class="profile-card border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md sm:col-span-2" data-profile="pro" onclick="selectProfile('pro')">
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md sm:col-span-2" data-profile="pro" onclick="selectProfile('pro')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:oklch(var(--p))">✓</div>
               <div class="flex items-start gap-3">
                 <span class="text-3xl leading-none mt-0.5">⛳</span>
                 <div class="flex-1 min-w-0">
@@ -141,21 +146,26 @@
 
           <script>
             function selectProfile(profile) {
-              document.getElementById('watering-profile-input').value = profile;
-              document.querySelectorAll('.profile-card').forEach(function(card) {
+              document.getElementById('watering-profile-input').value = profile
+              document.querySelectorAll('.profile-card').forEach(function (card) {
+                var check = card.querySelector('.profile-check')
                 if (card.dataset.profile === profile) {
-                  card.style.borderColor = 'oklch(var(--p))';
-                  card.style.backgroundColor = 'oklch(var(--p) / 0.05)';
+                  card.style.borderColor = 'oklch(var(--p))'
+                  card.style.backgroundColor = 'oklch(var(--p) / 0.10)'
+                  card.style.boxShadow = '0 0 0 1px oklch(var(--p) / 0.25)'
+                  if (check) check.style.display = 'flex'
                 } else {
-                  card.style.borderColor = '';
-                  card.style.backgroundColor = '';
+                  card.style.borderColor = ''
+                  card.style.backgroundColor = ''
+                  card.style.boxShadow = ''
+                  if (check) check.style.display = 'none'
                 }
-              });
+              })
             }
             // Initialize selection on page load
-            document.addEventListener('DOMContentLoaded', function() {
-              selectProfile(document.getElementById('watering-profile-input').value || 'standard');
-            });
+            document.addEventListener('DOMContentLoaded', function () {
+              selectProfile(document.getElementById('watering-profile-input').value || 'standard')
+            })
           </script>
 
           <!-- Address section -->
