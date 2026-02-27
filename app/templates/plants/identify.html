@@ -1,0 +1,61 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Identifier une plante — {{ garden.name }}
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="divider"></div>
+  <div class="max-w-lg">
+    <h2 class="text-xl font-bold mb-4">🔍 Identifier une plante</h2>
+    <p class="text-sm opacity-60 mb-4">Fournissez l'URL d'une photo de votre plante. PlantNet analysera l'image et proposera une identification.</p>
+
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">URL de la photo</legend>
+            <input type="url" name="image_url" class="input input-bordered w-full" placeholder="https://example.com/photo.jpg" required />
+          </fieldset>
+          <button type="submit" class="btn btn-primary btn-sm">Identifier</button>
+        </form>
+
+        {% if error %}
+          <div class="alert alert-error mt-4">
+            <span>{{ error }}</span>
+          </div>
+        {% endif %}
+
+        {% if result.success %}
+          <div class="divider">Résultats</div>
+          <div class="space-y-2">
+            {% for r in result.all_results %}
+              <div class="flex items-center justify-between p-3 rounded-lg {% if forloop.first %}bg-primary/10 border border-primary/20{% else %}bg-base-200/50{% endif %}">
+                <div>
+                  <span class="font-semibold text-sm">{{ r.common_name|default:r.scientific_name }}</span>
+                  {% if r.common_name %}
+                    <span class="text-xs italic opacity-50 ml-1">{{ r.scientific_name }}</span>
+                  {% endif %}
+                </div>
+                <span class="badge {% if r.score > 0.5 %}badge-success{% elif r.score > 0.2 %}badge-warning{% else %}badge-ghost{% endif %} badge-sm">{{ r.score|floatformat:0 }}%</span>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Quick-create with pre-filled data -->
+          <div class="mt-4">
+            <form method="post" action="{% url 'gardens:plants:create' garden_slug=garden.slug %}">
+              {% csrf_token %}
+              <input type="hidden" name="common_name" value="{{ result.common_name }}" />
+              <input type="hidden" name="scientific_name" value="{{ result.scientific_name }}" />
+              <button type="submit" class="btn btn-primary btn-sm w-full">
+                ＋ Ajouter « {{ result.common_name }} » à mon jardin
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -15,4 +15,5 @@ urlpatterns = [
     path("<slug:slug>/delete/", views.garden_delete_view, name="delete"),
     path("<slug:garden_slug>/activities/", include("activities.urls")),
     path("<slug:garden_slug>/weather/", include("weather.urls")),
+    path("<slug:garden_slug>/plants/", include("plants.urls")),
 ]

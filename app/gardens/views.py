@@ -98,6 +98,24 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
             logger.exception("Greenkeeping analysis failed")
             context["report"] = None
 
+        # Plant tasks for the dashboard "On fait quoi aujourd'hui?" section
+        try:
+            from plants.models import Plant, PlantTask
+
+            garden = self.object
+            context["plant_count"] = garden.plants.count()
+            context["plant_tasks_pending"] = PlantTask.objects.filter(
+                plant__garden=garden, done=False
+            ).select_related("plant").order_by("-priority", "due_date")[:5]
+            context["plant_tasks_pending_total"] = PlantTask.objects.filter(
+                plant__garden=garden, done=False
+            ).count()
+        except Exception:
+            logger.exception("Plant tasks fetch failed")
+            context["plant_count"] = 0
+            context["plant_tasks_pending"] = []
+            context["plant_tasks_pending_total"] = 0
+
         return context
 
 

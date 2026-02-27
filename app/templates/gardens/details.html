@@ -7,20 +7,43 @@
 {% block content %}
   <div class="flex flex-1">
     <!-- Sidebar -->
-    <aside class="menu bg-base-200 w-56 p-4">
-      <li class="menu-title">{{ garden.name }}</li>
+    <aside class="menu bg-base-200 w-56 p-4 gap-1">
+      <!-- Garden name -->
+      <li class="menu-title text-sm font-bold tracking-wide">{{ garden.name }}</li>
       <ul>
         <li>
           <a href="{% url 'gardens:detail' slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'detail' %}active{% endif %}">🏠 Tableau de bord</a>
         </li>
+      </ul>
+
+      <!-- Gazon -->
+      <li class="menu-title text-xs uppercase opacity-50 mt-3">Gazon</li>
+      <ul>
         <li>
           <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">🧪 Entretien</a>
         </li>
         <li>
           <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">🌤️ Météo & Sol</a>
         </li>
-        <li class="disabled">
-          <a>📅 Calendrier</a>
+      </ul>
+
+      <!-- Plantes -->
+      <li class="menu-title text-xs uppercase opacity-50 mt-3">Plantes</li>
+      <ul>
+        <li>
+          <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}" class="{% if request.resolver_match.app_name == 'plants' and request.resolver_match.url_name == 'list' %}active{% endif %}">🌺 Mes plantes</a>
+        </li>
+        <li>
+          <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'identify' %}active{% endif %}">🔍 Identifier</a>
+        </li>
+      </ul>
+
+      <!-- Outils -->
+      <li class="menu-title text-xs uppercase opacity-50 mt-3">Outils</li>
+      <ul>
+        <li class="disabled"><a>📅 Calendrier</a></li>
+        <li>
+          <a href="{{ garden.get_edit_url }}">⚙️ Paramètres</a>
         </li>
       </ul>
     </aside>
@@ -37,49 +60,143 @@
 
       {% block garden_detail_content %}
         <div class="divider"></div>
-        <h2 class="text-xl font-bold mb-4">🏠 Tableau de bord</h2>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- "On fait quoi aujourd'hui ?" section    -->
+        <!-- ═══════════════════════════════════════ -->
+        <h2 class="text-xl font-bold mb-4">☀️ On fait quoi aujourd'hui ?</h2>
 
         {% if report %}
-          <!-- Summary strip -->
-          <p class="text-sm opacity-60 mb-4">📍 {{ location_source }}
+          <p class="text-sm opacity-60 mb-5">📍 {{ location_source }}
             · Saison : {{ report.season|capfirst }}
-            · Analyse du {{ report.generated_at }}</p>
+            · {{ report.generated_at }}</p>
+        {% endif %}
 
-          <!-- Key metrics -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+        <!-- Quick-action cards grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+
+          <!-- 1. Watering summary card -->
+          {% if report.watering %}
+            <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}border-warning{% else %}border-success{% endif %}">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title text-sm gap-1">🚿 Arrosage</h3>
+                  <span class="badge badge-outline badge-sm">{{ report.watering.profile_label }}</span>
+                </div>
+                {% if report.watering.weekly_deficit > 0 %}
+                  <p class="text-sm mt-1">Déficit de <strong>{{ report.watering.weekly_deficit|floatformat:0 }} mm</strong> cette semaine</p>
+                  {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
+                    <p class="text-xs opacity-60">→ Arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} L</strong> sur {{ report.watering.surface }} m²</p>
+                  {% endif %}
+                  <!-- Mini progress bar -->
+                  <div class="w-full bg-base-200 rounded-full h-2 mt-2">
+                    <div class="h-full rounded-full bg-warning" style="width: min({% widthratio report.watering.weekly_precip report.watering.weekly_need 100 %}%, 100%)"></div>
+                  </div>
+                  <div class="text-xs opacity-40 mt-1">{{ report.watering.weekly_precip|floatformat:0 }} / {{ report.watering.weekly_need|floatformat:0 }} mm couverts par la pluie</div>
+                {% else %}
+                  <p class="text-sm mt-1 text-success">✓ Besoins en eau couverts cette semaine</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- 2. Key weather alerts from greenkeeping -->
+          {% if report %}
+            {% for advice in report.advices %}
+              {% if advice.status.value == 'warn' or advice.status.value == 'danger' %}
+                <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}border-error{% else %}border-warning{% endif %}">
+                  <div class="card-body p-4">
+                    <div class="flex items-start gap-2">
+                      <span class="text-xl">{{ advice.icon }}</span>
+                      <div>
+                        <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
+                        <p class="text-xs opacity-70 mt-1">{{ advice.detail }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          <!-- 3. Plant tasks card -->
+          {% if plant_count > 0 %}
+            <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}border-info{% else %}border-success{% endif %}">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title text-sm gap-1">🌺 Plantes</h3>
+                  <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs">Voir tout →</a>
+                </div>
+                {% if plant_tasks_pending_total > 0 %}
+                  <p class="text-sm mt-1"><strong>{{ plant_tasks_pending_total }}</strong> tâche{{ plant_tasks_pending_total|pluralize }} à faire</p>
+                  <ul class="text-xs mt-2 space-y-1">
+                    {% for task in plant_tasks_pending %}
+                      <li class="flex items-center gap-1">
+                        {% if task.priority == 3 %}<span class="badge badge-error badge-xs">!</span>{% endif %}
+                        <span>{{ task.title }}</span>
+                        <span class="opacity-40">— {{ task.plant.common_name }}</span>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                  {% if plant_tasks_pending_total > 5 %}
+                    <p class="text-xs opacity-40 mt-1">… et {{ plant_tasks_pending_total|add:"-5" }} autre{{ plant_tasks_pending_total|add:"-5"|pluralize }}</p>
+                  {% endif %}
+                {% else %}
+                  <p class="text-sm mt-1 text-success">✓ Tout est à jour !</p>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="card bg-base-100 shadow-sm border-l-4 border-base-300">
+              <div class="card-body p-4">
+                <h3 class="card-title text-sm gap-1">🌺 Plantes</h3>
+                <p class="text-sm mt-1 opacity-60">Aucune plante dans ce jardin.</p>
+                <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-xs btn-outline mt-2">＋ Ajouter une plante</a>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- 4. 🎋 Profiter du jardin — humorous card (always shown) -->
+          <div class="card bg-base-100 shadow-sm border-l-4 border-success">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm gap-1">🍹 Profiter du jardin</h3>
+              <p class="text-sm mt-1">La tâche la plus importante de la journée&nbsp;!</p>
+              <p class="text-xs opacity-60 mt-1 italic">Un jardinier heureux fait un jardin heureux. Prenez le temps de vous asseoir et d'admirer votre travail. ☕🌿</p>
+              <div class="flex items-center gap-2 mt-2">
+                <progress class="progress progress-success w-full" value="100" max="100"></progress>
+                <span class="text-xs text-success font-semibold whitespace-nowrap">Toujours ✓</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- Quick weather snapshot                  -->
+        <!-- ═══════════════════════════════════════ -->
+        {% if report %}
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">🌡️ Air</div>
               <div class="stat-value text-lg">{{ report.air_temp|floatformat:1 }}°C</div>
             </div>
-            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
-              <div class="stat-title text-xs">🌱 Sol surface</div>
-              <div class="stat-value text-lg">{{ report.soil_temp_surface|floatformat:1 }}°C</div>
-            </div>
-            <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Température à ~6 cm — zone des racines du gazon. La pousse reprend au-dessus de 8 °C.">
-              <div class="stat-title text-xs">🌾 Sol racines</div>
-              <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
-                  text-info
-                {% elif report.soil_temp_roots > 25 %}
-                  text-warning
-                {% else %}
-                  text-success
-                {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
-              <div class="stat-desc">à 6 cm</div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Zone racines (~6 cm)">
+              <div class="stat-title text-xs">🌾 Sol</div>
+              <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}text-info{% elif report.soil_temp_roots > 25 %}text-warning{% else %}text-success{% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
-              <div class="stat-title text-xs">💧 Humidité sol</div>
+              <div class="stat-title text-xs">💧 Humidité</div>
               <div class="stat-value text-lg">{{ report.moisture_surface|floatformat:2 }}</div>
-              <div class="stat-desc">m³/m³</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
-              <div class="stat-title text-xs">🌧️ Pluie 24 h</div>
+              <div class="stat-title text-xs">🌧️ Pluie 24h</div>
               <div class="stat-value text-lg">{{ report.precip_last_24h|floatformat:1 }}</div>
               <div class="stat-desc">mm</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
-              <div class="stat-title text-xs">🌧️ Pluie prévue</div>
+              <div class="stat-title text-xs">🌧️ Prévue</div>
               <div class="stat-value text-lg">{{ report.precip_next_24h|floatformat:1 }}</div>
-              <div class="stat-desc">mm (24 h)</div>
+              <div class="stat-desc">mm (24h)</div>
             </div>
             <div class="stat bg-base-100 shadow-sm rounded-box p-3">
               <div class="stat-title text-xs">💨 Vent</div>
@@ -87,149 +204,16 @@
               <div class="stat-desc">km/h</div>
             </div>
           </div>
+        {% endif %}
 
-          <!-- Water balance & watering recommendation -->
-          {% if report.watering %}
-            <div class="card bg-base-100 shadow-sm mb-6">
-              <div class="card-body p-5">
-                <!-- Header row: title + profile badge + edit link -->
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <h3 class="card-title text-base">🚿 Arrosage</h3>
-                  <div class="flex items-center gap-2">
-                    <span class="badge badge-outline gap-1">{{ report.watering.profile_label }}</span>
-                    <a href="{{ garden.get_edit_url }}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100" title="Changer de profil">✏️</a>
-                  </div>
-                </div>
-
-                <!-- Visual water budget bar -->
-                <div class="mb-4">
-                  <div class="flex justify-between text-xs opacity-60 mb-1">
-                    <span>Pluies : {{ report.watering.weekly_precip|floatformat:0 }} mm</span>
-                    <span>Besoin : {{ report.watering.weekly_need|floatformat:0 }} mm ({{ report.watering.et0_replacement_pct }}% de l'évaporation compensée)</span>
-                  </div>
-                  <div class="w-full bg-base-200 rounded-full h-4 overflow-hidden">
-                    {% if report.watering.weekly_need > 0 %}
-                      <div class="h-full rounded-full transition-all {% if report.watering.weekly_deficit == 0 %}
-                          
-                          bg-success
-
-                        {% elif report.watering.weekly_deficit <= 10 %}
-                          
-                          bg-info
-
-                        {% else %}
-                          
-                          bg-warning
-
-                        {% endif %}"
-                        style="width: min({% widthratio report.watering.weekly_precip report.watering.weekly_need 100 %}%, 100%)"></div>
-                    {% else %}
-                      <div class="h-full rounded-full bg-success w-full"></div>
-                    {% endif %}
-                  </div>
-                  <div class="flex justify-between text-xs mt-1">
-                    <span class="opacity-40">0 mm</span>
-                    {% if report.watering.weekly_deficit > 0 %}
-                      <span class="font-semibold text-warning">▲ Déficit : {{ report.watering.weekly_deficit|floatformat:0 }} mm ({{ report.watering.litres_per_m2|floatformat:0 }} L/m²)</span>
-                    {% else %}
-                      <span class="font-semibold text-success">✓ Besoins couverts</span>
-                    {% endif %}
-                    <span class="opacity-40">{{ report.watering.weekly_need|floatformat:0 }} mm</span>
-                  </div>
-                </div>
-
-                <!-- Stats row -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div class="text-center p-2 rounded-lg bg-base-200/50">
-                    <div class="text-xs opacity-50" title="Évapotranspiration de référence (ET₀) — l'eau que le sol et le gazon perdent naturellement par évaporation et transpiration">☀️ Évaporation</div>
-                    <div class="text-lg font-bold">{{ report.watering.weekly_et0|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm / semaine</div>
-                  </div>
-                  <div class="text-center p-2 rounded-lg bg-base-200/50">
-                    <div class="text-xs opacity-50">🌧️ Pluies</div>
-                    <div class="text-lg font-bold text-info">{{ report.watering.weekly_precip|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm / semaine</div>
-                  </div>
-                  <div class="text-center p-2 rounded-lg bg-base-200/50">
-                    <div class="text-xs opacity-50" title="Quantité d'eau à apporter selon votre profil d'arrosage ({{ report.watering.et0_replacement_pct }}% de l'évaporation)">🎯 Besoin</div>
-                    <div class="text-lg font-bold">{{ report.watering.weekly_need|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm / semaine</div>
-                  </div>
-                  <div class="text-center p-2 rounded-lg {% if report.watering.weekly_deficit > 0 %}
-                      
-                      bg-warning/10
-
-                    {% else %}
-                      
-                      bg-success/10
-
-                    {% endif %}">
-                    <div class="text-xs opacity-50">💧 Déficit</div>
-                    <div class="text-lg font-bold {% if report.watering.weekly_deficit > 0 %}
-                        
-                        text-warning
-
-                      {% else %}
-                        
-                        text-success
-
-                      {% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }}</div>
-                    <div class="text-xs opacity-40">mm</div>
-                  </div>
-                </div>
-
-                <!-- Total litres callout -->
-                {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
-                  <div class="alert alert-warning mt-3 py-2">
-                    <span class="text-sm">💡 Pour vos <strong>{{ report.watering.surface }} m²</strong> : arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} litres</strong> répartis sur la semaine</span>
-                  </div>
-                {% endif %}
-
-                <!-- 24h balance detail (collapsed) -->
-                <details class="mt-2">
-                  <summary class="text-xs opacity-40 cursor-pointer hover:opacity-70">Bilan 24 h détaillé</summary>
-                  <div class="flex items-center gap-3 text-xs mt-2 opacity-60">
-                    <span>Pluie : {{ report.precip_last_24h|floatformat:1 }} mm</span>
-                    <span>−</span>
-                    <span>Évaporation : {{ report.et0_last_24h|floatformat:1 }} mm</span>
-                    <span>=</span>
-                    <span class="font-semibold {% if report.water_balance < 0 %}
-                        
-                        text-warning
-
-                      {% else %}
-                        
-                        text-success
-
-                      {% endif %}">
-                      {{ report.water_balance|floatformat:1 }} mm
-                    </span>
-                  </div>
-                </details>
-              </div>
-            </div>
-          {% endif %}
-
-          <!-- Advice cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- ═══════════════════════════════════════ -->
+        <!-- All greenkeeping advice cards           -->
+        <!-- ═══════════════════════════════════════ -->
+        {% if report %}
+          <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
             {% for advice in report.advices %}
-              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
-                  
-                  border-success
-
-                {% elif advice.status.value == 'info' %}
-                  
-                  border-info
-
-                {% elif advice.status.value == 'warn' %}
-                  
-                  border-warning
-
-                {% elif advice.status.value == 'danger' %}
-                  
-                  border-error
-
-                {% endif %}">
+              <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}border-success{% elif advice.status.value == 'info' %}border-info{% elif advice.status.value == 'warn' %}border-warning{% elif advice.status.value == 'danger' %}border-error{% endif %}">
                 <div class="card-body p-4">
                   <div class="flex items-start gap-2">
                     <span class="text-xl">{{ advice.icon }}</span>
@@ -242,8 +226,10 @@
               </div>
             {% endfor %}
           </div>
-        {% else %}
-          <!-- Fallback if report is unavailable -->
+        {% endif %}
+
+        <!-- Fallback if report is unavailable -->
+        {% if not report %}
           <div class="card bg-base-100 shadow-sm">
             <div class="card-body">
               <h3 class="card-title text-sm">Description du jardin</h3>

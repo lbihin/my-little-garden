@@ -1,0 +1,49 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  {% if plant %}Modifier {{ plant.common_name }}{% else %}Ajouter une plante{% endif %} — {{ garden.name }}
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="divider"></div>
+  <div class="max-w-lg">
+    <h2 class="text-xl font-bold mb-4">
+      {% if plant %}
+        ✏️ Modifier « {{ plant.common_name }} »
+      {% else %}
+        🌺 Nouvelle plante
+      {% endif %}
+    </h2>
+
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Nom commun</legend>
+            <input type="text" name="common_name" value="{{ form.common_name.value|default:'' }}" maxlength="{{ form.common_name.field.max_length }}" class="input input-bordered w-full {% if form.common_name.errors %}input-error{% endif %}" placeholder="ex. Lavande" required />
+            {% if form.common_name.errors %}
+              <p class="label text-error text-sm">{{ form.common_name.errors.0 }}</p>
+            {% endif %}
+          </fieldset>
+
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Nom scientifique (optionnel)</legend>
+            <input type="text" name="scientific_name" value="{{ form.scientific_name.value|default:'' }}" maxlength="{{ form.scientific_name.field.max_length }}" class="input input-bordered w-full" placeholder="ex. Lavandula angustifolia" />
+          </fieldset>
+
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Notes</legend>
+            <textarea name="notes" class="textarea textarea-bordered w-full h-24" placeholder="Emplacement, particularités…">{{ form.notes.value|default:'' }}</textarea>
+          </fieldset>
+
+          <div class="card-actions justify-end">
+            <a href="{% if plant %}{{ plant.get_absolute_url }}{% else %}{% url 'gardens:plants:list' garden_slug=garden.slug %}{% endif %}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
