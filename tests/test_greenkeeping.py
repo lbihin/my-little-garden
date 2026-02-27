@@ -6,7 +6,6 @@ import pytest
 from weather.greenkeeping import (
     GreenkeepingReport,
     Status,
-    WateringRecommendation,
     _analyse_fertiliser,
     _analyse_grass_growth,
     _analyse_mowing,
@@ -291,9 +290,7 @@ class TestWatering:
         weather = self._weather_with_et0(et0_per_hour=0.3, precip_per_hour=0.0)
         report = _make_report(grass_growing=True)
         _analyse_watering(weather, report, profile_key="standard")
-        assert any(
-            "recommandé" in a.title.lower() for a in report.advices
-        )
+        assert any("recommandé" in a.title.lower() for a in report.advices)
         assert report.watering.weekly_deficit > 15
 
     def test_eco_higher_tolerance(self):
@@ -315,7 +312,7 @@ class TestWatering:
         # Deficit ~15 mm, threshold 15 → just at ignore, should be OK
         assert report.watering is not None
         # Check there's a resilient tip if deficit > ignore
-        assert report.watering.et0_replacement_pct == 0.30
+        assert report.watering.et0_replacement_pct == 30
 
     def test_laissez_faire_never_recommends(self):
         """Laissez-faire never recommends watering."""

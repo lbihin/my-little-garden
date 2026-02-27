@@ -56,23 +56,95 @@
             <textarea name="description" class="textarea textarea-bordered w-full h-40" placeholder="Décrivez votre jardin…">{{ form.description.value|default:'' }}</textarea>
           </fieldset>
 
-          <!-- Surface & watering profile -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <fieldset class="fieldset">
-              <legend class="fieldset-legend">Surface (m²)</legend>
-              <input type="number" name="surface" value="{{ form.surface.value|default:'' }}" min="0" class="input input-bordered w-full" placeholder="ex. 200" />
-              <p class="label text-xs opacity-50">Permet de calculer les litres d'arrosage</p>
-            </fieldset>
+          <!-- Surface -->
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Surface du jardin</legend>
+            <label class="input input-bordered w-full sm:w-48 flex items-center gap-2">
+              <input type="number" name="surface" value="{{ form.surface.value|default:'' }}" min="0" class="grow" placeholder="ex. 200" />
+              <span class="text-sm opacity-50">m²</span>
+            </label>
+            <p class="label text-xs opacity-50">Permet de calculer le volume total d'arrosage en litres</p>
+          </fieldset>
 
-            <fieldset class="fieldset">
-              <legend class="fieldset-legend">Profil d'arrosage</legend>
-              <select name="watering_profile" class="select select-bordered w-full">
-                {% for choice in form.watering_profile.field.choices %}
-                  <option value="{{ choice.0 }}" {% if form.watering_profile.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
-                {% endfor %}
-              </select>
-              <p class="label text-xs opacity-50">Détermine les seuils de recommandation</p>
-            </fieldset>
+          <!-- Watering profile — radio card selector -->
+          <div class="divider">🚿 Profil d'arrosage</div>
+          <p class="text-xs opacity-50 mb-4">Choisissez une stratégie d'arrosage. Elle détermine les seuils et la fréquence des recommandations.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+            <!-- Standard -->
+            <div>
+              <input type="radio" name="watering_profile" value="standard" id="profile-standard" class="peer hidden" {% if form.watering_profile.value == "standard" or not form.watering_profile.value %}checked{% endif %} />
+              <label for="profile-standard" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-2xl">🌿</span>
+                    <h4 class="font-semibold">Standard</h4>
+                    <span class="badge badge-sm badge-outline ml-auto">70 %</span>
+                  </div>
+                  <p class="text-xs opacity-60">Beau jardin, arrosage équilibré. Remplace 70 % de l'évapotranspiration.</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Éco-responsable -->
+            <div>
+              <input type="radio" name="watering_profile" value="eco" id="profile-eco" class="peer hidden" {% if form.watering_profile.value == "eco" %}checked{% endif %} />
+              <label for="profile-eco" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-2xl">💧</span>
+                    <h4 class="font-semibold">Éco-responsable</h4>
+                    <span class="badge badge-sm badge-outline ml-auto">60 %</span>
+                  </div>
+                  <p class="text-xs opacity-60">Économe en eau, gazon soigné. Arrosage ciblé, profond et espacé.</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Résilient -->
+            <div>
+              <input type="radio" name="watering_profile" value="resilient" id="profile-resilient" class="peer hidden" {% if form.watering_profile.value == "resilient" %}checked{% endif %} />
+              <label for="profile-resilient" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-2xl">🌾</span>
+                    <h4 class="font-semibold">Résilient</h4>
+                    <span class="badge badge-sm badge-outline ml-auto">30 %</span>
+                  </div>
+                  <p class="text-xs opacity-60">Accepte la dormance estivale. Le gazon jaunit mais reverdit naturellement.</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Laisser-faire -->
+            <div>
+              <input type="radio" name="watering_profile" value="laissez_faire" id="profile-laissez_faire" class="peer hidden" {% if form.watering_profile.value == "laissez_faire" %}checked{% endif %} />
+              <label for="profile-laissez_faire" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-2xl">🍃</span>
+                    <h4 class="font-semibold">Laisser-faire</h4>
+                    <span class="badge badge-sm badge-outline ml-auto">0 %</span>
+                  </div>
+                  <p class="text-xs opacity-60">Aucun arrosage. La nature décide, vous recevez seulement des observations.</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Greenkeeper pro -->
+            <div>
+              <input type="radio" name="watering_profile" value="pro" id="profile-pro" class="peer hidden" {% if form.watering_profile.value == "pro" %}checked{% endif %} />
+              <label for="profile-pro" class="card bg-base-100 border-2 border-base-300 cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:shadow-md transition-all block h-full">
+                <div class="card-body p-4">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-2xl">⛳</span>
+                    <h4 class="font-semibold">Greenkeeper pro</h4>
+                    <span class="badge badge-sm badge-outline ml-auto">100 %</span>
+                  </div>
+                  <p class="text-xs opacity-60">Gazon de golf, tolérance zéro. Remplacement intégral de l'évapotranspiration.</p>
+                </div>
+              </label>
+            </div>
           </div>
 
           <!-- Address section -->

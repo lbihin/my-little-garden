@@ -61,7 +61,7 @@ class WateringRecommendation:
     """Quantified watering recommendation."""
 
     weekly_et0: float = 0.0  # mm – raw ET₀ over the analysis window
-    et0_replacement_pct: float = 0.70  # profile replacement ratio
+    et0_replacement_pct: int = 70  # profile replacement ratio (0-100 %)
     weekly_need: float = 0.0  # mm – ET₀ × replacement ratio
     weekly_precip: float = 0.0  # mm – natural rainfall
     weekly_deficit: float = 0.0  # mm – need − precip (positive = must water)
@@ -400,9 +400,7 @@ def _analyse_watering(
 
     # Total precipitation and ET₀ over all available data
     total_precip = (
-        sum(v or 0 for v in weather.precipitation)
-        if weather.precipitation
-        else 0
+        sum(v or 0 for v in weather.precipitation) if weather.precipitation else 0
     )
     total_et0 = (
         sum(v or 0 for v in weather.evapotranspiration)
@@ -426,7 +424,7 @@ def _analyse_watering(
 
     rec = WateringRecommendation(
         weekly_et0=round(weekly_et0, 1),
-        et0_replacement_pct=et0_pct,
+        et0_replacement_pct=round(et0_pct * 100),
         weekly_need=round(weekly_need, 1),
         weekly_precip=round(weekly_precip, 1),
         weekly_deficit=round(weekly_deficit, 1),
@@ -486,9 +484,7 @@ def _analyse_watering(
             f"Pluies prévues : {weekly_precip:.0f} mm. "
             f"Aucun arrosage nécessaire."
         )
-        report.advices.append(
-            Advice("💧", "Pas besoin d'arroser", detail, Status.OK)
-        )
+        report.advices.append(Advice("💧", "Pas besoin d'arroser", detail, Status.OK))
     elif weekly_deficit <= warn:
         detail = (
             f"Besoin : {weekly_need:.0f} mm/sem − pluies {weekly_precip:.0f} mm "
@@ -500,12 +496,9 @@ def _analyse_watering(
                 "à répartir sur la semaine. "
             )
         detail += (
-            "Arrosez en profondeur 1 à 2 fois par semaine, "
-            "tôt le matin (5-8 h)."
+            "Arrosez en profondeur 1 à 2 fois par semaine, " "tôt le matin (5-8 h)."
         )
-        report.advices.append(
-            Advice("💧", "Arrosage conseillé", detail, Status.INFO)
-        )
+        report.advices.append(Advice("💧", "Arrosage conseillé", detail, Status.INFO))
     else:
         detail = (
             f"Déficit important : {weekly_deficit:.0f} mm/sem "
@@ -518,9 +511,7 @@ def _analyse_watering(
             "tôt le matin. Évitez les arrosages légers et fréquents qui "
             "favorisent un enracinement superficiel."
         )
-        report.advices.append(
-            Advice("💧", "Arrosage recommandé", detail, Status.WARN)
-        )
+        report.advices.append(Advice("💧", "Arrosage recommandé", detail, Status.WARN))
 
     # --- Profile-specific bonus tips ---
     if profile_key == "eco" and weekly_deficit > ignore:
