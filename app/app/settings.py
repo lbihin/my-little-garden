@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "accounts",
     "gardens",
     "activities",
+    "weather",
 ]
 
 MIDDLEWARE = [

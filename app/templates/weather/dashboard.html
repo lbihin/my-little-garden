@@ -1,0 +1,164 @@
+{% extends "gardens/details.html" %}
+
+{% block title %}
+  Météo — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block extra_head %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% endblock %}
+
+{% block garden_detail_content %}
+<div class="flex flex-col gap-6">
+
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+            <h2 class="text-2xl font-bold">🌤️ Météo & Sol</h2>
+            <p class="text-sm opacity-60">
+                📍 {{ location_source }}
+                {% if weather.timezone %}· {{ weather.timezone }}{% endif %}
+            </p>
+        </div>
+        <div class="join">
+            {% for d in "1,3,7"|make_list %}
+            {% with day_val=d|add:"0" %}
+            {% endwith %}
+            {% endfor %}
+            <a href="?days=1" class="join-item btn btn-sm {% if days == 1 %}btn-active{% endif %}">24h</a>
+            <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
+            <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
+        </div>
+    </div>
+
+    {% if not weather.ok %}
+    <div role="alert" class="alert alert-error">
+        <span>{{ weather.error }}</span>
+    </div>
+    {% else %}
+
+    <!-- Current snapshot cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+            <div class="stat-title text-xs">🌡️ Air</div>
+            <div class="stat-value text-xl">{{ current.air_temp|floatformat:1 }}°C</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+            <div class="stat-title text-xs">💧 Humidité</div>
+            <div class="stat-value text-xl">{{ current.humidity|floatformat:0 }}%</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+            <div class="stat-title text-xs">🌱 Sol surface</div>
+            <div class="stat-value text-xl">{{ current.soil_0cm|floatformat:1 }}°C</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+            <div class="stat-title text-xs">🪱 Sol profond (54cm)</div>
+            <div class="stat-value text-xl">{{ current.soil_54cm|floatformat:1 }}°C</div>
+        </div>
+    </div>
+
+    <!-- Temperature chart -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-sm">Températures (°C)</h3>
+            <canvas id="tempChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- Soil temperature chart -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-sm">Température du sol (°C)</h3>
+            <canvas id="soilTempChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- Moisture chart -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-sm">Humidité du sol (m³/m³)</h3>
+            <canvas id="moistureChart" height="100"></canvas>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if weather.ok %}
+<script>
+(function() {
+    const labels = {{ chart_labels|safe }};
+    // Format labels to show only HH:MM or day+hour
+    const shortLabels = labels.map(l => {
+        const d = new Date(l);
+        return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})
+             + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    });
+
+    const commonOpts = {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: { x: { ticks: { maxTicksToLimit: 12, font: { size: 10 } } } },
+        elements: { point: { radius: 0 }, line: { tension: 0.3, borderWidth: 2 } },
+    };
+
+    // 1. Air temperature + humidity
+    new Chart(document.getElementById('tempChart'), {
+        type: 'line',
+        data: {
+            labels: shortLabels,
+            datasets: [
+                { label: 'Air (°C)', data: {{ chart_air_temp|safe }}, borderColor: '#f59e0b', backgroundColor: '#f59e0b22' },
+                { label: 'Humidité (%)', data: {{ chart_humidity|safe }}, borderColor: '#3b82f6', backgroundColor: '#3b82f622', yAxisID: 'y1' },
+            ]
+        },
+        options: {
+            ...commonOpts,
+            scales: {
+                ...commonOpts.scales,
+                y:  { position: 'left',  title: { display: true, text: '°C' } },
+                y1: { position: 'right', title: { display: true, text: '%' }, grid: { drawOnChartArea: false } },
+            }
+        }
+    });
+
+    // 2. Soil temperatures
+    new Chart(document.getElementById('soilTempChart'), {
+        type: 'line',
+        data: {
+            labels: shortLabels,
+            datasets: [
+                { label: 'Surface (0 cm)', data: {{ chart_soil_0|safe }},  borderColor: '#84cc16' },
+                { label: '6 cm',           data: {{ chart_soil_6|safe }},  borderColor: '#22c55e' },
+                { label: '18 cm',          data: {{ chart_soil_18|safe }}, borderColor: '#14b8a6' },
+                { label: '54 cm',          data: {{ chart_soil_54|safe }}, borderColor: '#6366f1' },
+            ]
+        },
+        options: {
+            ...commonOpts,
+            scales: { ...commonOpts.scales, y: { title: { display: true, text: '°C' } } }
+        }
+    });
+
+    // 3. Soil moisture
+    new Chart(document.getElementById('moistureChart'), {
+        type: 'line',
+        data: {
+            labels: shortLabels,
+            datasets: [
+                { label: 'Surface (0-1 cm)', data: {{ chart_moisture_surface|safe }}, borderColor: '#0ea5e9', fill: true, backgroundColor: '#0ea5e922' },
+                { label: 'Profondeur (1-3 cm)', data: {{ chart_moisture_deep|safe }}, borderColor: '#8b5cf6', fill: true, backgroundColor: '#8b5cf622' },
+            ]
+        },
+        options: {
+            ...commonOpts,
+            scales: { ...commonOpts.scales, y: { title: { display: true, text: 'm³/m³' } } }
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -14,4 +14,5 @@ urlpatterns = [
     path("<slug:slug>/edit/", views.GardenUpdateView.as_view(), name="edit"),
     path("<slug:slug>/delete/", views.garden_delete_view, name="delete"),
     path("<slug:garden_slug>/activities/", include("activities.urls")),
+    path("<slug:garden_slug>/weather/", include("weather.urls")),
 ]
