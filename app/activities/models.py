@@ -1,5 +1,4 @@
 # Create your models here.
-import pint
 from django.db import models
 from django.urls import reverse
 
@@ -25,87 +24,79 @@ class Fertilizer(models.Model):
 
 class FertilizationTask(models.Model):
     quantity_as_float = models.FloatField(null=True, blank=True)
-    unit = models.CharField(max_length=50, validators=[validate_unit_measurement], blank=True, null=True)
+    unit = models.CharField(
+        max_length=50,
+        validators=[validate_unit_measurement],
+        blank=True,
+        null=True,
+    )
     fertilizer = models.ForeignKey(Fertilizer, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f"{self.quantity_as_float}{self.unit}"
+        if self.quantity_as_float and self.unit:
+            return f"{self.quantity_as_float} {self.unit}"
+        return "—"
 
-    def convert_to_system(self, quantity, system="mks"):
-        if quantity is None:
-            return None
-        ureg = pint.UnitRegistry(system=system)
-        return quantity * ureg[self.unit.lower()]
+    def get_quantity_display(self):
+        """Return a formatted quantity string."""
+        if self.quantity_as_float is None:
+            return "—"
+        formatted = f"{self.quantity_as_float:,.2f}".rstrip("0").rstrip(".")
+        return f"{formatted} {self.unit or ''}"
 
-    def as_mks(self, quantity):
-        # meter, kilogram, second
-        measurement = self.convert_to_system(quantity, system='mks').to_base_units()
-        number = measurement.magnitude
-        unit = measurement.units
-        formatted_number = "{:,.2f}".format(number).rstrip('0').rstrip('.').replace(",", ".")
-        return "{} {:~}".format(formatted_number, unit)
-
-    def get_quantity(self, system="mks"):
-        return self.compute_quantity(self.quantity_as_float, system=system)
-
-    def compute_quantity(self, quantity, system="mks"):
-        if system == "mks":
-            return self.as_mks(quantity)
-        elif system == "imperial":
-            return self.as_imperial(quantity)
-
-    def as_imperial(self, quantity):
-        # miles, pounds, seconds
-        measurement = self.convert_to_system(quantity, system='imperial')
-        number = measurement.magnitude
-        unit = measurement.units
-        formatted_number = "{:,.2f}".format(number).rstrip('0').rstrip('.').replace(",", ".")
-        return "{} {:~}".format(formatted_number, unit)
-
-    def get_nitrogen_quantity(self, system='mks'):
-        quantity = self.quantity_as_float * self.fertilizer.n_rate / 100
-        return self.compute_quantity(quantity, system=system)
-
-    def get_base_component_quantity(self, system='mks'):
+    def get_base_component_quantity(self):
+        """Return NPK quantities based on fertilizer composition."""
+        if not self.fertilizer or not self.quantity_as_float:
+            return {}
         composition = {}
         for element, rate in self.fertilizer.get_element_base_composition().items():
-            quantity = self.quantity_as_float * rate/100
-            composition[element] = self.compute_quantity(quantity, system=system)
+            if rate:
+                qty = self.quantity_as_float * rate / 100
+                formatted = f"{qty:,.2f}".rstrip("0").rstrip(".")
+                composition[element] = f"{formatted} {self.unit or ''}"
         return composition
 
 
 class Activity(models.Model):
     creation = models.DateTimeField()
     updated = models.DateTimeField(auto_now=True)
-    comment = models.TextField()
-    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='activities', null=True, blank=True)
-    task = models.OneToOneField(FertilizationTask, on_delete=models.CASCADE, null=True, blank=True)
+    comment = models.TextField(blank=True, default="")
+    garden = models.ForeignKey(
+        Garden, on_delete=models.CASCADE, related_name="activities", null=True, blank=True
+    )
+    task = models.OneToOneField(
+        FertilizationTask, on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
-        ordering = ('creation',)
+        ordering = ("-creation",)
+        verbose_name_plural = "activities"
+
+    def __str__(self):
+        return f"Activity {self.pk} — {self.garden} ({self.get_creation_date()})"
 
     def get_absolute_url(self):
-        return reverse('gardens:activities:description', kwargs={'garden_slug': self.garden.slug, 'pk':self.pk})
+        return reverse(
+            "gardens:activities:description",
+            kwargs={"garden_slug": self.garden.slug, "pk": self.pk},
+        )
 
     def get_creation_date(self):
-        return self.creation.strftime('%d.%m.%y')
+        return self.creation.strftime("%d.%m.%y")
 
     def get_updated_date(self):
-        return self.updated.strftime('%d.%m.%y')
+        return self.updated.strftime("%d.%m.%y")
 
     def since_update(self):
         return compute_time_difference(self.updated)
 
-    def get_children_fertilization(self):
-        if self.fertilization:
-            return self.fertilization
-
     def get_quantity(self):
-        if obj := self.get_children_fertilization():
-            return obj.get_quantity()
-        return '-'
+        if self.task:
+            return self.task.get_quantity_display()
+        return "—"
 
     def get_base_element_quantity(self):
-        if obj := self.get_children_fertilization():
-            return obj.get_base_component_quantity()
-        return '-'
+        if self.task:
+            return self.task.get_base_component_quantity()
+        return {}
+

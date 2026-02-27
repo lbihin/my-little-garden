@@ -1,20 +1,20 @@
 [project]
 name = "my-little-garden"
 version = "0.1.0"
-description = "Add your description here"
+description = "Application de suivi d'entretien de jardin (greenkeeping)"
 requires-python = ">=3.13"
 dependencies = [
-    "django>=4.2.9,<4.3",
+    "django>=5.2,<5.3",
     "gunicorn",
     "psycopg2-binary",
-    "django-dotenv",
-    "pint==0.23",
-    "python-dotenv==1.0.0",
-    "django-enumfields==2.1.1",
-    "django-extensions>=3.2,<3.3",
-    "django-formtools>=2.5.1",
-    "django-crispy-forms>=2.1",
-    "django-widget-tweaks",
+    "python-dotenv",
     "django-htmx",
     "geopy>=2.4.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-django",
+    "django-extensions",
 ]
