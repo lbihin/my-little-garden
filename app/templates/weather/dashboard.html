@@ -1,4 +1,4 @@
-{% extends "gardens/details.html" %}
+{% extends 'gardens/details.html' %}
 
 {% block title %}
   Météo — {{ garden.name }} — My Little Garden
@@ -9,85 +9,85 @@
 {% endblock %}
 
 {% block garden_detail_content %}
-<div class="flex flex-col gap-6">
-
+  <div class="flex flex-col gap-6">
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-2">
-        <div>
-            <h2 class="text-2xl font-bold">🌤️ Météo & Sol</h2>
-            <p class="text-sm opacity-60">
-                📍 {{ location_source }}
-                {% if weather.timezone %}· {{ weather.timezone }}{% endif %}
-            </p>
-        </div>
-        <div class="join">
-            {% for d in "1,3,7"|make_list %}
-            {% with day_val=d|add:"0" %}
-            {% endwith %}
-            {% endfor %}
-            <a href="?days=1" class="join-item btn btn-sm {% if days == 1 %}btn-active{% endif %}">24h</a>
-            <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
-            <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
-        </div>
+      <div>
+        <h2 class="text-2xl font-bold">🌤️ Météo & Sol</h2>
+        <p class="text-sm opacity-60">
+          📍 {{ location_source }}
+          {% if weather.timezone %}
+            · {{ weather.timezone }}
+          {% endif %}
+        </p>
+      </div>
+      <div class="join">
+        {% for d in '1,3,7'|make_list %}
+          {% with day_val=d|add:'0' %}
+
+          {% endwith %}
+        {% endfor %}
+        <a href="?days=1" class="join-item btn btn-sm {% if days == 1 %}btn-active{% endif %}">24h</a>
+        <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
+        <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
+      </div>
     </div>
 
     {% if not weather.ok %}
-    <div role="alert" class="alert alert-error">
+      <div role="alert" class="alert alert-error">
         <span>{{ weather.error }}</span>
-    </div>
+      </div>
     {% else %}
+      <!-- Current snapshot cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🌡️ Air</div>
+          <div class="stat-value text-xl">{{ current.air_temp|floatformat:1 }}°C</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">💧 Humidité</div>
+          <div class="stat-value text-xl">{{ current.humidity|floatformat:0 }}%</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🌱 Sol surface</div>
+          <div class="stat-value text-xl">{{ current.soil_0cm|floatformat:1 }}°C</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🪱 Sol profond (54cm)</div>
+          <div class="stat-value text-xl">{{ current.soil_54cm|floatformat:1 }}°C</div>
+        </div>
+      </div>
 
-    <!-- Current snapshot cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-            <div class="stat-title text-xs">🌡️ Air</div>
-            <div class="stat-value text-xl">{{ current.air_temp|floatformat:1 }}°C</div>
-        </div>
-        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-            <div class="stat-title text-xs">💧 Humidité</div>
-            <div class="stat-value text-xl">{{ current.humidity|floatformat:0 }}%</div>
-        </div>
-        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-            <div class="stat-title text-xs">🌱 Sol surface</div>
-            <div class="stat-value text-xl">{{ current.soil_0cm|floatformat:1 }}°C</div>
-        </div>
-        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-            <div class="stat-title text-xs">🪱 Sol profond (54cm)</div>
-            <div class="stat-value text-xl">{{ current.soil_54cm|floatformat:1 }}°C</div>
-        </div>
-    </div>
-
-    <!-- Temperature chart -->
-    <div class="card bg-base-100 shadow-sm">
+      <!-- Temperature chart -->
+      <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
-            <h3 class="card-title text-sm">Températures (°C)</h3>
-            <canvas id="tempChart" height="120"></canvas>
+          <h3 class="card-title text-sm">Températures (°C)</h3>
+          <canvas id="tempChart" height="120"></canvas>
         </div>
-    </div>
+      </div>
 
-    <!-- Soil temperature chart -->
-    <div class="card bg-base-100 shadow-sm">
+      <!-- Soil temperature chart -->
+      <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
-            <h3 class="card-title text-sm">Température du sol (°C)</h3>
-            <canvas id="soilTempChart" height="120"></canvas>
+          <h3 class="card-title text-sm">Température du sol (°C)</h3>
+          <canvas id="soilTempChart" height="120"></canvas>
         </div>
-    </div>
+      </div>
 
-    <!-- Moisture chart -->
-    <div class="card bg-base-100 shadow-sm">
+      <!-- Moisture chart -->
+      <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
-            <h3 class="card-title text-sm">Humidité du sol (m³/m³)</h3>
-            <canvas id="moistureChart" height="100"></canvas>
+          <h3 class="card-title text-sm">Humidité du sol (m³/m³)</h3>
+          <canvas id="moistureChart" height="100"></canvas>
         </div>
-    </div>
-
+      </div>
     {% endif %}
-</div>
+  </div>
 {% endblock %}
 
 {% block extra_js %}
-{% if weather.ok %}
-<script>
+  {% if weather.ok %}
+    <script>
 (function() {
     const labels = {{ chart_labels|safe }};
     // Format labels to show only HH:MM or day+hour
@@ -160,5 +160,5 @@
     });
 })();
 </script>
-{% endif %}
+  {% endif %}
 {% endblock %}

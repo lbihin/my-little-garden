@@ -3,11 +3,10 @@ from unittest.mock import patch
 import pytest
 from django.test import Client
 from django.urls import reverse
-
 from weather.services import WeatherData, fetch_weather
 
-
 # -- Service tests -----------------------------------------------------------
+
 
 def _fake_weather_data() -> WeatherData:
     return WeatherData(
@@ -81,8 +80,8 @@ class TestFetchWeather:
         import httpx
 
         resp = httpx.Response(500)
-        mock_get.return_value.raise_for_status.side_effect = (
-            httpx.HTTPStatusError("err", request=httpx.Request("GET", ""), response=resp)
+        mock_get.return_value.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "err", request=httpx.Request("GET", ""), response=resp
         )
         result = fetch_weather(48.85, 2.35)
         assert not result.ok
@@ -99,6 +98,7 @@ class TestFetchWeather:
 
 
 # -- View tests ---------------------------------------------------------------
+
 
 @pytest.fixture
 def auth_client(user):

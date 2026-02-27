@@ -17,8 +17,7 @@
           <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">🧪 Entretien</a>
         </li>
         <li>
-          <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}"
-             class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">🌤️ Météo & Sol</a>
+          <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">🌤️ Météo & Sol</a>
         </li>
         <li class="disabled">
           <a>📅 Calendrier</a>
