@@ -1,22 +1,45 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpResponse
-from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy, reverse
+from django.views.generic import ListView, DetailView
 
-from gardens.forms import GardenForm
+from gardens.forms import AddressForm, GardenForm
 from gardens.models import Garden
 
 
-class GardenFormView(CreateView):
-    template_name = 'gardens/create-update.html'
-    form_class = GardenForm
-    success_url = reverse_lazy('gardens:list')
+class GardenFormView(LoginRequiredMixin, ListView):
+    """Handles both GET (show form) and POST (create garden + optional address)."""
 
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        return super().form_valid(form)
+    template_name = "gardens/create-update.html"
+
+    def get(self, request):
+        context = {
+            "form": GardenForm(),
+            "address_form": AddressForm(prefix="addr"),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        form = GardenForm(request.POST)
+        address_form = AddressForm(request.POST, prefix="addr")
+
+        if form.is_valid() and address_form.is_valid():
+            garden = form.save(commit=False)
+            garden.created_by = request.user
+
+            if address_form.has_data():
+                address = address_form.save(commit=False)
+                address.name = garden.name
+                address.save()
+                garden.address = address
+
+            garden.save()
+            return redirect("gardens:list")
+
+        context = {"form": form, "address_form": address_form}
+        return render(request, self.template_name, context)
 
 
 class GardenListView(LoginRequiredMixin, ListView):
@@ -57,11 +80,52 @@ def garden_delete_view(request, slug: str):
     return render(request, "gardens/delete.html", {"garden": garden})
 
 
-class GardenUpdateView(LoginRequiredMixin, UpdateView):
+class GardenUpdateView(LoginRequiredMixin, DetailView):
+    """Handles GET (show pre-filled form) and POST (update garden + address)."""
+
     model = Garden
-    form_class = GardenForm
-    template_name = 'gardens/create-update.html'
-    success_url = reverse_lazy('gardens:list')
+    template_name = "gardens/create-update.html"
+
+    def get(self, request, *args, **kwargs):
+        garden = self.get_object()
+        context = {
+            "garden": garden,
+            "form": GardenForm(instance=garden),
+            "address_form": AddressForm(
+                instance=garden.address, prefix="addr"
+            ),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        garden = self.get_object()
+        form = GardenForm(request.POST, instance=garden)
+        address_form = AddressForm(
+            request.POST, instance=garden.address, prefix="addr"
+        )
+
+        if form.is_valid() and address_form.is_valid():
+            garden = form.save(commit=False)
+
+            if address_form.has_data():
+                address = address_form.save(commit=False)
+                if not address.name:
+                    address.name = garden.name
+                # Reset lat/lon so geocoding is re-triggered on save
+                address.latitude = None
+                address.longitude = None
+                address.save()
+                garden.address = address
+
+            garden.save()
+            return redirect("gardens:detail", slug=garden.slug)
+
+        context = {
+            "garden": garden,
+            "form": form,
+            "address_form": address_form,
+        }
+        return render(request, self.template_name, context)
 
 
 def garden_name_length_view(request):

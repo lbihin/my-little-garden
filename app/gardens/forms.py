@@ -1,5 +1,5 @@
 from django import forms
-from gardens.models import Garden
+from gardens.models import Address, Garden
 
 
 class GardenForm(forms.ModelForm):
@@ -17,3 +17,24 @@ class GardenForm(forms.ModelForm):
                 f"'{name}' est déjà utilisé. Veuillez choisir un autre nom de jardin."
             )
         return name
+
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = ["street", "city", "postal_code", "state", "country"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # All address fields are optional — user can skip entirely
+        for field in self.fields.values():
+            field.required = False
+
+    def has_data(self) -> bool:
+        """Return True if the user filled in at least one address field."""
+        if not hasattr(self, "cleaned_data"):
+            return False
+        return any(
+            self.cleaned_data.get(f)
+            for f in ("street", "city", "postal_code", "country")
+        )

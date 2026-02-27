@@ -36,6 +36,36 @@ class TestGardenViews:
         )
         assert resp.status_code == 302  # redirect on success
 
+    def test_create_garden_with_address(self, auth_client):
+        from gardens.models import Garden
+
+        resp = auth_client.post(
+            reverse("gardens:create"),
+            {
+                "name": "Jardin Localisé",
+                "description": "Avec adresse",
+                "addr-street": "10 rue de la Paix",
+                "addr-city": "Paris",
+                "addr-postal_code": "75002",
+                "addr-country": "France",
+            },
+        )
+        assert resp.status_code == 302
+        garden = Garden.objects.get(name="Jardin Localisé")
+        assert garden.address is not None
+        assert garden.address.city == "Paris"
+
+    def test_create_garden_without_address(self, auth_client):
+        from gardens.models import Garden
+
+        resp = auth_client.post(
+            reverse("gardens:create"),
+            {"name": "Jardin Sans Adresse", "description": "Pas d'adresse"},
+        )
+        assert resp.status_code == 302
+        garden = Garden.objects.get(name="Jardin Sans Adresse")
+        assert garden.address is None
+
     def test_detail_garden(self, auth_client, garden):
         resp = auth_client.get(reverse("gardens:detail", kwargs={"slug": garden.slug}))
         assert resp.status_code == 200
@@ -43,6 +73,23 @@ class TestGardenViews:
     def test_edit_garden(self, auth_client, garden):
         resp = auth_client.get(reverse("gardens:edit", kwargs={"slug": garden.slug}))
         assert resp.status_code == 200
+
+    def test_edit_garden_add_address(self, auth_client, garden):
+        resp = auth_client.post(
+            reverse("gardens:edit", kwargs={"slug": garden.slug}),
+            {
+                "name": garden.name,
+                "description": garden.description,
+                "addr-street": "5 avenue Foch",
+                "addr-city": "Lyon",
+                "addr-postal_code": "69001",
+                "addr-country": "France",
+            },
+        )
+        assert resp.status_code == 302
+        garden.refresh_from_db()
+        assert garden.address is not None
+        assert garden.address.city == "Lyon"
 
 
 class TestActivityViews:

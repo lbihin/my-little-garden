@@ -56,6 +56,59 @@
             <textarea name="description" class="textarea textarea-bordered w-full h-40" placeholder="Décrivez votre jardin…">{{ form.description.value|default:'' }}</textarea>
           </fieldset>
 
+          <!-- Address section -->
+          <div class="divider">📍 Adresse (optionnel)</div>
+          <p class="text-xs opacity-50 mb-3">
+            Renseignez l'adresse pour localiser le jardin et obtenir les données météo.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <fieldset class="fieldset sm:col-span-2">
+              <legend class="fieldset-legend">Rue</legend>
+              <input type="text"
+                     name="addr-street"
+                     value="{{ address_form.street.value|default:'' }}"
+                     class="input input-bordered w-full"
+                     placeholder="12 rue des Lilas" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Code postal</legend>
+              <input type="text"
+                     name="addr-postal_code"
+                     value="{{ address_form.postal_code.value|default:'' }}"
+                     class="input input-bordered w-full"
+                     placeholder="75001" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Ville</legend>
+              <input type="text"
+                     name="addr-city"
+                     value="{{ address_form.city.value|default:'' }}"
+                     class="input input-bordered w-full"
+                     placeholder="Paris" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Région / État</legend>
+              <input type="text"
+                     name="addr-state"
+                     value="{{ address_form.state.value|default:'' }}"
+                     class="input input-bordered w-full"
+                     placeholder="Île-de-France" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Pays</legend>
+              <input type="text"
+                     name="addr-country"
+                     value="{{ address_form.country.value|default:'' }}"
+                     class="input input-bordered w-full"
+                     placeholder="France" />
+            </fieldset>
+          </div>
+
           <!-- Submit -->
           <div class="card-actions justify-end">
             <a href="{% url 'gardens:list' %}" class="btn btn-ghost">Annuler</a>
