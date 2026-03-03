@@ -16,8 +16,8 @@
       {% endif %}
     </div>
     <div class="flex items-center gap-2">
-      <a href="{% url 'gardens:plants:edit' garden_slug=garden.slug slug=plant.slug %}" class="btn btn-ghost btn-sm">✏️ Modifier</a>
-      <a href="{% url 'gardens:plants:delete' garden_slug=garden.slug slug=plant.slug %}" class="btn btn-error btn-ghost btn-sm">🗑️ Supprimer</a>
+      <a href="{% url 'gardens:plants:edit' garden_slug=garden.slug slug=plant.slug %}" class="btn btn-ghost btn-sm gap-1"><i data-lucide="pencil" class="w-3.5 h-3.5"></i> Modifier</a>
+      <a href="{% url 'gardens:plants:delete' garden_slug=garden.slug slug=plant.slug %}" class="btn btn-error btn-ghost btn-sm gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Supprimer</a>
     </div>
   </div>
 
@@ -28,7 +28,7 @@
         <img src="{{ plant.photo_url }}" alt="{{ plant.common_name }}" class="rounded-xl w-full object-cover max-h-64" />
       {% else %}
         <div class="bg-base-200 rounded-xl h-48 flex items-center justify-center">
-          <span class="text-6xl opacity-20">🌿</span>
+          <i data-lucide="leaf" class="w-16 h-16 opacity-10"></i>
         </div>
       {% endif %}
       {% if plant.identification_score %}
@@ -39,7 +39,7 @@
       {% if plant.notes %}
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body p-4">
-            <h3 class="card-title text-sm">📋 Notes</h3>
+            <h3 class="card-title text-sm flex items-center gap-1.5"><i data-lucide="file-text" class="w-4 h-4"></i> Notes</h3>
             <p class="text-sm whitespace-pre-line">{{ plant.notes }}</p>
           </div>
         </div>
@@ -54,7 +54,7 @@
   <div class="card bg-base-100 shadow-sm">
     <div class="card-body p-5">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="card-title text-base">📝 Tâches d'entretien</h3>
+        <h3 class="card-title text-base flex items-center gap-1.5"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Tâches d'entretien</h3>
         {% if pending_count > 0 %}
           <span class="badge badge-warning">{{ pending_count }} à faire</span>
         {% else %}

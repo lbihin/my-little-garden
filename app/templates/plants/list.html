@@ -8,7 +8,10 @@
   <div class="divider"></div>
 
   <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <h2 class="text-xl font-bold">🌺 Mes plantes</h2>
+    <h2 class="text-xl font-bold flex items-center gap-2">
+      <i data-lucide="leaf" class="w-5 h-5 text-success"></i>
+      Mes plantes
+    </h2>
     <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">＋ Ajouter une plante</a>
   </div>
 
@@ -22,7 +25,7 @@
             </figure>
           {% else %}
             <figure class="h-40 bg-base-200 flex items-center justify-center">
-              <span class="text-5xl opacity-30">🌿</span>
+              <i data-lucide="leaf" class="w-12 h-12 text-base-content/20"></i>
             </figure>
           {% endif %}
           <div class="card-body p-4">
@@ -42,7 +45,9 @@
   {% else %}
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body items-center text-center py-12">
-        <span class="text-5xl mb-3">🌱</span>
+        <div class="p-4 bg-base-200 rounded-2xl mb-3">
+          <i data-lucide="leaf" class="w-10 h-10 text-base-content/30"></i>
+        </div>
         <h3 class="font-semibold text-lg">Aucune plante pour le moment</h3>
         <p class="text-sm opacity-60 mb-4">Ajoutez vos premières plantes pour suivre leur entretien.</p>
         <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm">Ajouter une plante</a>

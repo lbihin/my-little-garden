@@ -8,7 +8,15 @@
   <div class="hero min-h-[60vh] bg-base-200">
     <div class="hero-content text-center">
       <div class="max-w-lg">
-        <h1 class="text-5xl font-bold">🌱 My Little Garden</h1>
+        <div class="flex items-center justify-center mb-4">
+          <div class="p-4 bg-primary/10 rounded-2xl">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-primary">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
+          </div>
+        </div>
+        <h1 class="text-5xl font-bold">My Little Garden</h1>
         <p class="py-6 text-lg">Un endroit unique pour le suivi de votre jardin. Gérez vos espaces verts, suivez vos activités d'entretien et gardez une trace de tout ce qui fait pousser votre jardin.</p>
         {% if user.is_authenticated %}
           <a href="{% url 'gardens:list' %}" class="btn btn-primary">Voir mes jardins</a>

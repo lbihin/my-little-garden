@@ -5,7 +5,10 @@
       <div class="card-body p-5">
         <!-- Header row: title + profile selector -->
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <h3 class="card-title text-base">🚿 Arrosage — bilan hebdomadaire</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="droplets" class="w-5 h-5 text-info"></i>
+            Arrosage — bilan hebdomadaire
+          </h3>
           <form hx-post="{% url 'gardens:weather:change-profile' garden_slug=garden.slug %}"
                 hx-target="#watering-section"
                 hx-swap="outerHTML"
@@ -54,22 +57,22 @@
         <!-- Stats row -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="text-center p-2 rounded-lg bg-base-200/50">
-            <div class="text-xs opacity-50" title="Évapotranspiration de référence (ET₀)">☀️ Évaporation</div>
+            <div class="text-xs opacity-50" title="Évapotranspiration de référence (ET₀)">Evaporation ET₀</div>
             <div class="text-lg font-bold">{{ report.watering.weekly_et0|floatformat:0 }}</div>
             <div class="text-xs opacity-40">mm / semaine</div>
           </div>
           <div class="text-center p-2 rounded-lg bg-base-200/50">
-            <div class="text-xs opacity-50">🌧️ Pluies</div>
+            <div class="text-xs opacity-50">Pluies</div>
             <div class="text-lg font-bold text-info">{{ report.watering.weekly_precip|floatformat:0 }}</div>
             <div class="text-xs opacity-40">mm / semaine</div>
           </div>
           <div class="text-center p-2 rounded-lg bg-base-200/50">
-            <div class="text-xs opacity-50" title="Quantité d'eau à apporter ({{ report.watering.et0_replacement_pct }}% de l'évaporation)">🎯 Besoin</div>
+            <div class="text-xs opacity-50" title="Quantité d'eau à apporter ({{ report.watering.et0_replacement_pct }}% de l'évaporation)">Besoin en eau</div>
             <div class="text-lg font-bold">{{ report.watering.weekly_need|floatformat:0 }}</div>
             <div class="text-xs opacity-40">mm / semaine</div>
           </div>
           <div class="text-center p-2 rounded-lg {% if report.watering.weekly_deficit > 0 %}bg-warning/10{% else %}bg-success/10{% endif %}">
-            <div class="text-xs opacity-50">💧 Déficit</div>
+            <div class="text-xs opacity-50">À apporter</div>
             <div class="text-lg font-bold {% if report.watering.weekly_deficit > 0 %}text-warning{% else %}text-success{% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }}</div>
             <div class="text-xs opacity-40">mm</div>
           </div>
@@ -83,14 +86,14 @@
         {% endif %}
 
         <!-- 24h balance detail -->
-        <div class="divider text-xs opacity-40 my-2">Bilan 24 h</div>
+          <div class="divider text-xs opacity-40 my-2">Bilan 24 h</div>
         <div class="flex flex-wrap items-center gap-3 text-sm">
-          <span>🌧️ Pluie : <strong>{{ report.precip_last_24h|floatformat:1 }} mm</strong></span>
+          <span>Pluie : <strong>{{ report.precip_last_24h|floatformat:1 }} mm</strong></span>
           <span class="opacity-40">−</span>
-          <span>☀️ Évaporation : <strong>{{ report.et0_last_24h|floatformat:1 }} mm</strong></span>
+          <span>Évaporation : <strong>{{ report.et0_last_24h|floatformat:1 }} mm</strong></span>
           <span class="opacity-40">=</span>
           <span class="font-semibold {% if report.water_balance < 0 %}text-warning{% else %}text-success{% endif %}">
-            ⚖️ {{ report.water_balance|floatformat:1 }} mm
+            Balance : {{ report.water_balance|floatformat:1 }} mm
           </span>
         </div>
       </div>

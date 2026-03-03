@@ -12,16 +12,25 @@
     <!-- DaisyUI + Tailwind CSS 4 (CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <!-- HTMX -->
     <script defer src="https://unpkg.com/htmx.org@2.0.4"></script>
     {% block extra_head %}
+
     {% endblock %}
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- Navbar -->
-    <div class="navbar bg-base-100 shadow-sm">
+    <div class="navbar bg-base-100 border-b border-base-200">
       <div class="flex-1">
-        <a href="{% url 'home' %}" class="btn btn-ghost text-xl gap-2">🌱 My Little Garden</a>
+        <a href="{% url 'home' %}" class="btn btn-ghost text-xl gap-2 px-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-primary">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" />
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+          </svg>
+          <span class="font-semibold">My Little Garden</span>
+        </a>
       </div>
       <div class="flex-none">
         {% include 'partials/navbar.html' %}
@@ -34,13 +43,21 @@
         {% for message in messages %}
           <div role="alert"
             class="alert {% if message.tags == 'error' %}
+              
               alert-error
+
             {% elif message.tags == 'success' %}
+              
               alert-success
+
             {% elif message.tags == 'warning' %}
+              
               alert-warning
+
             {% else %}
+              
               alert-info
+
             {% endif %} mb-2">
             <span>{{ message }}</span>
           </div>
@@ -51,6 +68,7 @@
     <!-- Main content -->
     <main class="flex-1">
       {% block content %}
+
       {% endblock %}
     </main>
 
@@ -67,7 +85,16 @@
         event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}'
       })
     </script>
+    <!-- Init Lucide icons (also after HTMX swaps) -->
+    <script>
+      function initIcons() {
+        if (window.lucide) lucide.createIcons()
+      }
+      document.addEventListener('DOMContentLoaded', initIcons)
+      document.addEventListener('htmx:afterSwap', initIcons)
+    </script>
     {% block extra_js %}
+
     {% endblock %}
   </body>
 </html>

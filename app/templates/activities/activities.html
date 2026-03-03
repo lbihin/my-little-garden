@@ -18,30 +18,41 @@
       <div class="collapse collapse-arrow bg-base-100 shadow-sm">
         <input type="checkbox" checked />
         <div class="collapse-title font-semibold text-base flex items-center gap-2">
-          🌱 Conseils gazon
+          <i data-lucide="sprout" class="w-5 h-5 text-success"></i>
+          Conseils gazon
           <span class="badge badge-info badge-sm">{{ report.advices|length }}</span>
         </div>
         <div class="collapse-content">
-          <p class="text-xs opacity-50 mb-3">📍 {{ location_source }}
+          <p class="text-xs opacity-50 mb-3">
+            <span class="inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>{{ location_source }}</span>
             · Saison : {{ report.season|capfirst }}
-            · {{ report.generated_at }}</p>
+            · {{ report.generated_at }}
+          </p>
           <div class="space-y-2">
             {% for advice in report.advices %}
               <div class="flex items-start gap-3 p-3 rounded-lg {% if advice.status.value == 'danger' %}
                   
+                  
                   bg-error/10
+
 
                 {% elif advice.status.value == 'warn' %}
                   
+                  
                   bg-warning/10
+
 
                 {% elif advice.status.value == 'ok' %}
                   
+                  
                   bg-success/10
+
 
                 {% else %}
                   
+                  
                   bg-base-200/40
+
 
                 {% endif %} hover:bg-base-200/70 transition-colors">
                 <span class="text-xl mt-0.5 shrink-0">{{ advice.icon }}</span>
@@ -50,19 +61,27 @@
                     <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
                     <span class="badge badge-xs shrink-0 {% if advice.status.value == 'danger' %}
                         
+                        
                         badge-error
+
 
                       {% elif advice.status.value == 'warn' %}
                         
+                        
                         badge-warning
+
 
                       {% elif advice.status.value == 'ok' %}
                         
+                        
                         badge-success
+
 
                       {% else %}
                         
+                        
                         badge-info badge-outline
+
 
                       {% endif %}">
                       {{ advice.status.value }}
@@ -92,9 +111,13 @@
               <div class="stat bg-base-200/40 rounded-box p-3">
                 <div class="stat-title text-xs">Déficit</div>
                 <div class="stat-value text-lg {% if report.watering.weekly_deficit > 0 %}
+                    
                     text-warning
+
                   {% else %}
+                    
                     text-success
+
                   {% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }} mm</div>
               </div>
             </div>

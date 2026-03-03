@@ -10,7 +10,10 @@
     <div class="flex items-center gap-3">
       <a href="{% url 'gardens:weather:program' garden_slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Programme</a>
       <div class="border-l pl-3">
-        <h2 class="text-2xl font-bold">📝 Évaluation de votre gazon</h2>
+          <h2 class="text-2xl font-bold flex items-center gap-2">
+            <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+            Évaluation de votre gazon
+          </h2>
         <p class="text-sm opacity-60">Faites le point pour affiner votre programme</p>
       </div>
     </div>
@@ -21,7 +24,10 @@
       <!-- Overall rating -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">🌟 Impression générale</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="star" class="w-4 h-4 text-warning"></i>
+            Impression générale
+          </h3>
           <p class="text-xs opacity-60 mb-3">Comment évaluez-vous l'état de votre pelouse ?</p>
           <div class="flex gap-3 flex-wrap">
             {% for value, label in form.overall_rating.field.choices %}
@@ -40,7 +46,10 @@
       <!-- Issues -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">⚠️ Problèmes observés</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="triangle-alert" class="w-4 h-4 text-warning"></i>
+            Problèmes observés
+          </h3>
           <p class="text-xs opacity-60 mb-3">Cochez tout ce qui s'applique</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {% for value, label in form.issues.field.choices %}
@@ -56,7 +65,10 @@
       <!-- Notes -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">📝 Notes libres</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="pencil-line" class="w-4 h-4"></i>
+            Notes libres
+          </h3>
           <textarea name="notes" class="textarea textarea-bordered w-full h-24" placeholder="Observations, questions, remarques…">{{ form.notes.value|default:'' }}</textarea>
         </div>
       </div>

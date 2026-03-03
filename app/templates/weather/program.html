@@ -11,13 +11,19 @@
       <div class="flex items-center gap-3">
         <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Tableau de bord</a>
         <div class="border-l pl-3">
-          <h2 class="text-2xl font-bold">🏟️ Follow the Pro</h2>
+          <h2 class="text-2xl font-bold flex items-center gap-2">
+            <i data-lucide="trophy" class="w-6 h-6 text-warning"></i>
+            Follow the Pro
+          </h2>
           <p class="text-sm opacity-60">Programme personnalisé — {{ lawn_profile.get_goal_display }}</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <a href="{% url 'gardens:weather:assessment' garden_slug=garden.slug %}" class="btn btn-sm btn-outline btn-primary">📝 Nouvelle évaluation</a>
-        <a href="{% url 'gardens:weather:questionnaire' garden_slug=garden.slug %}" class="btn btn-sm btn-ghost" title="Modifier le profil">⚙️</a>
+        <a href="{% url 'gardens:weather:assessment' garden_slug=garden.slug %}" class="btn btn-sm btn-outline btn-primary gap-1.5">
+          <i data-lucide="clipboard-pen" class="w-4 h-4"></i>
+          Nouvelle évaluation
+        </a>
+        <a href="{% url 'gardens:weather:questionnaire' garden_slug=garden.slug %}" class="btn btn-sm btn-ghost" title="Modifier le profil"><i data-lucide="settings" class="w-4 h-4"></i></a>
       </div>
     </div>
 
@@ -28,9 +34,13 @@
         {% for m in months %}
           <a href="?month={{ m }}"
             class="join-item btn btn-xs {% if m == selected_month %}
+              
               btn-primary
+
             {% elif m == current_month %}
+              
               btn-outline btn-primary
+
             {% endif %}">
             {{ m }}
           </a>
@@ -86,11 +96,17 @@
             </h4>
             {% for task in cat.list %}
               <div class="collapse collapse-arrow bg-base-100 shadow-sm mb-1 border-l-4 {% if task.priority == 1 %}
+                  
                   border-primary
+
                 {% elif task.priority == 2 %}
+                  
                   border-info
+
                 {% else %}
+                  
                   border-base-300
+
                 {% endif %}">
                 <input type="checkbox" />
                 <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
@@ -119,7 +135,10 @@
     {% if plan.tips %}
       <div class="card bg-base-200 shadow-sm">
         <div class="card-body p-5">
-          <h4 class="text-sm font-semibold mb-2">💡 Astuces du mois</h4>
+          <h4 class="text-sm font-semibold mb-2 flex items-center gap-1.5">
+            <i data-lucide="lightbulb" class="w-4 h-4 text-warning"></i>
+            Astuces du mois
+          </h4>
           <ul class="list-disc list-inside text-sm opacity-70 space-y-1">
             {% for tip in plan.tips %}
               <li>{{ tip }}</li>
@@ -134,7 +153,10 @@
       <div class="card bg-base-100 shadow-sm border-l-4 border-secondary">
         <div class="card-body p-5">
           <div class="flex items-center justify-between">
-            <h4 class="text-sm font-semibold">📝 Dernière évaluation — {{ latest_assessment.date }}</h4>
+            <h4 class="text-sm font-semibold flex items-center gap-1.5">
+              <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+              Dernière évaluation — {{ latest_assessment.date }}
+            </h4>
             <span class="text-lg">{{ latest_assessment.get_overall_rating_display }}</span>
           </div>
           {% if latest_assessment.issues and 'none' not in latest_assessment.issues %}

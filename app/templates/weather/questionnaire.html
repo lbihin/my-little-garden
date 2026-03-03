@@ -10,7 +10,10 @@
     <div class="flex items-center gap-3">
       <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Retour</a>
       <div class="border-l pl-3">
-        <h2 class="text-2xl font-bold">🏟️ {% if is_update %}Modifier le profil gazon{% else %}Follow the Pro — Gazon{% endif %}</h2>
+          <h2 class="text-2xl font-bold flex items-center gap-2">
+            <i data-lucide="trophy" class="w-6 h-6 text-warning"></i>
+            {% if is_update %}Modifier le profil gazon{% else %}Follow the Pro — Gazon{% endif %}
+          </h2>
         <p class="text-sm opacity-60">
           {% if is_update %}
             Mettez à jour les caractéristiques de votre pelouse
@@ -36,7 +39,10 @@
       <!-- Grass type -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">🌾 Type de gazon</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="wheat" class="w-4 h-4"></i>
+            Type de gazon
+          </h3>
           <p class="text-xs opacity-60 mb-3">Quel type de graminées compose votre pelouse ?</p>
           <div class="flex flex-col gap-2">
             {% for value, label in form.grass_type.field.choices %}
@@ -84,7 +90,10 @@
       <!-- Sun exposure -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">☀️ Exposition</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="sun" class="w-4 h-4 text-warning"></i>
+            Exposition
+          </h3>
           <p class="text-xs opacity-60 mb-3">Combien de soleil reçoit votre pelouse ?</p>
           <div class="flex flex-col gap-2">
             {% for value, label in form.sun_exposure.field.choices %}
@@ -100,7 +109,10 @@
       <!-- Soil type -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">🪨 Type de sol</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            Type de sol
+          </h3>
           <p class="text-xs opacity-60 mb-3">Comment décririez-vous votre sol ?</p>
           <div class="flex flex-col gap-2">
             {% for value, label in form.soil_type.field.choices %}
@@ -116,7 +128,10 @@
       <!-- Goal -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">🎯 Votre objectif</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="target" class="w-4 h-4"></i>
+            Votre objectif
+          </h3>
           <p class="text-xs opacity-60 mb-3">Quel niveau de perfection visez-vous ?</p>
           <div class="flex flex-col gap-2">
             {% for value, label in form.goal.field.choices %}
@@ -132,7 +147,10 @@
       <!-- Irrigation + mowing frequency -->
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-5">
-          <h3 class="card-title text-base">🔧 Équipement</h3>
+          <h3 class="card-title text-base flex items-center gap-2">
+            <i data-lucide="wrench" class="w-4 h-4"></i>
+            Équipement
+          </h3>
           <div class="flex flex-col gap-4 mt-2">
             <label class="label cursor-pointer justify-start gap-3">
               <input type="checkbox" name="has_irrigation" class="toggle toggle-primary" {% if form.has_irrigation.value %}checked{% endif %} />

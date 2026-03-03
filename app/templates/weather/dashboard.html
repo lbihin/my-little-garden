@@ -15,9 +15,12 @@
       <div class="flex items-center gap-3">
         <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1" title="Retour au tableau de bord">← Tableau de bord</a>
         <div class="border-l pl-3">
-          <h2 class="text-2xl font-bold">🌤️ Conditions du jardin</h2>
+          <h2 class="text-2xl font-bold flex items-center gap-2">
+            <i data-lucide="cloud-sun" class="w-6 h-6 text-info"></i>
+            Conditions du jardin
+          </h2>
           <p class="text-sm opacity-60">
-            📍 {{ location_source }}
+            <span class="inline-flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>{{ location_source }}</span>
             {% if report %}
               · Saison : {{ report.season|capfirst }}
             {% endif %}
@@ -30,7 +33,7 @@
           <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
           <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
         </div>
-        <a href="?days={{ days }}&refresh=1" class="btn btn-sm btn-ghost" title="Actualiser les données météo">🔄</a>
+        <a href="?days={{ days }}&refresh=1" class="btn btn-sm btn-ghost" title="Actualiser les données météo"><i data-lucide="refresh-cw" class="w-4 h-4"></i></a>
       </div>
     </div>
 
@@ -42,52 +45,58 @@
       <!-- Current snapshot cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">🌡️ Air</div>
+          <div class="stat-title text-xs">Température air</div>
           <div class="stat-value text-xl">{{ current.air_temp|floatformat:1 }}°C</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">💧 Humidité</div>
+          <div class="stat-title text-xs">Humidité</div>
           <div class="stat-value text-xl">{{ current.humidity|floatformat:0 }}%</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">🌧️ Pluie</div>
+          <div class="stat-title text-xs">Pluie</div>
           <div class="stat-value text-xl">{{ current.precipitation|floatformat:1 }}</div>
           <div class="stat-desc">mm/h</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">💨 Vent</div>
+          <div class="stat-title text-xs">Vent</div>
           <div class="stat-value text-xl">{{ current.wind_speed|floatformat:0 }}</div>
           <div class="stat-desc">km/h</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">🌱 Sol surface</div>
+          <div class="stat-title text-xs">Sol surface</div>
           <div class="stat-value text-xl">{{ current.soil_0cm|floatformat:1 }}°C</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4" title="Zone racines (~6 cm) — la pousse reprend au-dessus de 8 °C">
-          <div class="stat-title text-xs">🌾 Sol racines</div>
+          <div class="stat-title text-xs">Sol racines</div>
           <div class="stat-value text-xl {% if current.soil_6cm < 8 %}
+              
               
               
               text-info
 
 
+
             {% elif current.soil_6cm > 25 %}
+              
               
               
               text-warning
 
 
+
             {% else %}
               
               
+              
               text-success
+
 
 
             {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
           <div class="stat-desc">à 6 cm</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">🪱 Sol profond</div>
+          <div class="stat-title text-xs">Sol profond</div>
           <div class="stat-value text-xl">{{ current.soil_54cm|floatformat:1 }}°C</div>
         </div>
       </div>
@@ -102,28 +111,47 @@
       <!-- ═══════════════════════════════════════ -->
       {% if report.advices %}
         <div>
-          <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
+          <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+            <i data-lucide="sprout" class="w-5 h-5 text-success"></i>
+            Conseils gazon
+          </h3>
           <div class="flex flex-col gap-1">
             {% for advice in report.advices %}
               <div class="collapse collapse-arrow bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
+                  
                   border-success
+
                 {% elif advice.status.value == 'info' %}
+                  
                   border-info
+
                 {% elif advice.status.value == 'warn' %}
+                  
                   border-warning
+
                 {% elif advice.status.value == 'danger' %}
+                  
                   border-error
+
                 {% endif %}">
                 <input type="checkbox" />
                 <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
                   <span class="w-3 h-3 rounded-full shrink-0 {% if advice.status.value == 'ok' %}
+                      
                       bg-success
+
                     {% elif advice.status.value == 'info' %}
+                      
                       bg-info
+
                     {% elif advice.status.value == 'warn' %}
+                      
                       bg-warning
+
                     {% elif advice.status.value == 'danger' %}
+                      
                       bg-error
+
                     {% endif %}">
 
                   </span>
@@ -141,12 +169,15 @@
       <!-- ═══════════════════════════════════════ -->
       <!-- Graphiques -->
       <!-- ═══════════════════════════════════════ -->
-      <h3 class="text-lg font-semibold">📊 Tendances</h3>
+      <h3 class="text-lg font-semibold flex items-center gap-2">
+        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+        Tendances
+      </h3>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Precipitation + ET₀ chart -->
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body p-4">
-            <h4 class="card-title text-sm">🌧️ Pluie vs Évapotranspiration</h4>
+            <h4 class="card-title text-sm">Pluie vs Évapotranspiration</h4>
             <div class="w-full" style="min-height: 280px;">
               <canvas id="precipChart"></canvas>
             </div>
@@ -156,7 +187,7 @@
         <!-- Soil temperature chart -->
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body p-4">
-            <h4 class="card-title text-sm">🌱 Température du sol</h4>
+            <h4 class="card-title text-sm">Température du sol</h4>
             <div class="w-full" style="min-height: 280px;">
               <canvas id="soilTempChart"></canvas>
             </div>
