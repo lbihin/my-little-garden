@@ -1,0 +1,162 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  {% if is_update %}Modifier le profil gazon{% else %}Questionnaire gazon{% endif %} — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="flex flex-col gap-6 max-w-2xl">
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Retour</a>
+      <div class="border-l pl-3">
+        <h2 class="text-2xl font-bold">🏟️ {% if is_update %}Modifier le profil gazon{% else %}Follow the Pro — Gazon{% endif %}</h2>
+        <p class="text-sm opacity-60">
+          {% if is_update %}
+            Mettez à jour les caractéristiques de votre pelouse
+          {% else %}
+            Répondez à quelques questions pour obtenir un programme sur mesure
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Steps indicator (only for new profile) -->
+    {% if not is_update %}
+      <ul class="steps steps-horizontal w-full text-xs">
+        <li class="step step-primary">Questionnaire</li>
+        <li class="step">Programme</li>
+        <li class="step">Suivi</li>
+      </ul>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Grass type -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">🌾 Type de gazon</h3>
+          <p class="text-xs opacity-60 mb-3">Quel type de graminées compose votre pelouse ?</p>
+          <div class="flex flex-col gap-2">
+            {% for value, label in form.grass_type.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="radio" name="grass_type" value="{{ value }}" class="radio radio-primary radio-sm" {% if form.grass_type.value == value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Current state -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">📋 État actuel</h3>
+          <p class="text-xs opacity-60 mb-3">Dans quel état se trouve votre pelouse ?</p>
+          <div class="flex flex-col gap-2">
+            {% for value, label in form.lawn_state.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="radio" name="lawn_state" value="{{ value }}" class="radio radio-primary radio-sm" {% if form.lawn_state.value == value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">👣 Usage</h3>
+          <p class="text-xs opacity-60 mb-3">Comment utilisez-vous votre pelouse ?</p>
+          <div class="flex flex-col gap-2">
+            {% for value, label in form.usage.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="radio" name="usage" value="{{ value }}" class="radio radio-primary radio-sm" {% if form.usage.value == value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sun exposure -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">☀️ Exposition</h3>
+          <p class="text-xs opacity-60 mb-3">Combien de soleil reçoit votre pelouse ?</p>
+          <div class="flex flex-col gap-2">
+            {% for value, label in form.sun_exposure.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="radio" name="sun_exposure" value="{{ value }}" class="radio radio-primary radio-sm" {% if form.sun_exposure.value == value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Soil type -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">🪨 Type de sol</h3>
+          <p class="text-xs opacity-60 mb-3">Comment décririez-vous votre sol ?</p>
+          <div class="flex flex-col gap-2">
+            {% for value, label in form.soil_type.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="radio" name="soil_type" value="{{ value }}" class="radio radio-primary radio-sm" {% if form.soil_type.value == value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Goal -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">🎯 Votre objectif</h3>
+          <p class="text-xs opacity-60 mb-3">Quel niveau de perfection visez-vous ?</p>
+          <div class="flex flex-col gap-2">
+            {% for value, label in form.goal.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="radio" name="goal" value="{{ value }}" class="radio radio-primary radio-sm" {% if form.goal.value == value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Irrigation + mowing frequency -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">🔧 Équipement</h3>
+          <div class="flex flex-col gap-4 mt-2">
+            <label class="label cursor-pointer justify-start gap-3">
+              <input type="checkbox" name="has_irrigation" class="toggle toggle-primary" {% if form.has_irrigation.value %}checked{% endif %} />
+              <span class="text-sm">J'ai un système d'arrosage automatique</span>
+            </label>
+            <div>
+              <label class="text-sm font-medium">Tontes par semaine (en saison de pousse)</label>
+              <input type="number" name="mowing_frequency" value="{{ form.mowing_frequency.value|default:1 }}" min="0" max="7" class="input input-bordered input-sm w-20 ml-3" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex justify-end gap-3">
+        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary">
+          {% if is_update %}
+            Mettre à jour
+          {% else %}
+            Voir mon programme →
+          {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Programme gazon — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Tableau de bord</a>
+        <div class="border-l pl-3">
+          <h2 class="text-2xl font-bold">🏟️ Follow the Pro</h2>
+          <p class="text-sm opacity-60">Programme personnalisé — {{ lawn_profile.get_goal_display }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'gardens:weather:assessment' garden_slug=garden.slug %}" class="btn btn-sm btn-outline btn-primary">📝 Nouvelle évaluation</a>
+        <a href="{% url 'gardens:weather:questionnaire' garden_slug=garden.slug %}" class="btn btn-sm btn-ghost" title="Modifier le profil">⚙️</a>
+      </div>
+    </div>
+
+    <!-- Month selector -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-sm font-medium opacity-60">Mois :</span>
+      <div class="join">
+        {% for m in months %}
+          <a href="?month={{ m }}"
+            class="join-item btn btn-xs {% if m == selected_month %}
+              btn-primary
+            {% elif m == current_month %}
+              btn-outline btn-primary
+            {% endif %}">
+            {{ m }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Monthly plan -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-xl font-bold">{{ plan.month_name }} — {{ plan.season|capfirst }}</h3>
+            <p class="text-sm opacity-70 mt-1">{{ plan.headline }}</p>
+          </div>
+          {% if selected_month == current_month %}
+            <span class="badge badge-primary badge-sm">Ce mois</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    {% if plan.tasks %}
+      <div class="flex flex-col gap-2">
+        {% regroup plan.tasks by category as category_list %}
+        {% for cat in category_list %}
+          <div>
+            <h4 class="text-sm font-semibold opacity-60 uppercase tracking-wide mb-2">
+              {% if cat.grouper == 'mowing' %}
+                ✂️ Tonte
+              {% elif cat.grouper == 'fertilisation' %}
+                🧪 Fertilisation
+              {% elif cat.grouper == 'scarification' %}
+                🪥 Scarification
+              {% elif cat.grouper == 'aeration' %}
+                🕳️ Aération
+              {% elif cat.grouper == 'overseeding' %}
+                🌱 Sursemis
+              {% elif cat.grouper == 'watering' %}
+                💧 Arrosage
+              {% elif cat.grouper == 'weeding' %}
+                🌿 Désherbage
+              {% elif cat.grouper == 'moss' %}
+                🌫️ Mousse
+              {% elif cat.grouper == 'disease' %}
+                🔬 Maladies
+              {% elif cat.grouper == 'corrective' %}
+                🔧 Actions correctives
+              {% else %}
+                {{ cat.grouper|capfirst }}
+              {% endif %}
+            </h4>
+            {% for task in cat.list %}
+              <div class="collapse collapse-arrow bg-base-100 shadow-sm mb-1 border-l-4 {% if task.priority == 1 %}
+                  border-primary
+                {% elif task.priority == 2 %}
+                  border-info
+                {% else %}
+                  border-base-300
+                {% endif %}">
+                <input type="checkbox" />
+                <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
+                  <span>{{ task.icon }} {{ task.title }}</span>
+                  {% if task.priority == 1 %}
+                    <span class="badge badge-primary badge-xs">Important</span>
+                  {% elif task.priority == 3 %}
+                    <span class="badge badge-ghost badge-xs">Optionnel</span>
+                  {% endif %}
+                </div>
+                <div class="collapse-content px-4 pb-3">
+                  <p class="text-xs opacity-70 ml-6">{{ task.detail }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        <span>Pas de tâche programmée pour {{ plan.month_name }}. Votre gazon est en repos ! 🛌</span>
+      </div>
+    {% endif %}
+
+    <!-- Tips -->
+    {% if plan.tips %}
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body p-5">
+          <h4 class="text-sm font-semibold mb-2">💡 Astuces du mois</h4>
+          <ul class="list-disc list-inside text-sm opacity-70 space-y-1">
+            {% for tip in plan.tips %}
+              <li>{{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Latest assessment summary -->
+    {% if latest_assessment %}
+      <div class="card bg-base-100 shadow-sm border-l-4 border-secondary">
+        <div class="card-body p-5">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-semibold">📝 Dernière évaluation — {{ latest_assessment.date }}</h4>
+            <span class="text-lg">{{ latest_assessment.get_overall_rating_display }}</span>
+          </div>
+          {% if latest_assessment.issues and 'none' not in latest_assessment.issues %}
+            <div class="flex flex-wrap gap-1 mt-2">
+              {% for label in latest_assessment.get_issue_labels %}
+                <span class="badge badge-warning badge-sm">{{ label }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if latest_assessment.notes %}
+            <p class="text-xs opacity-60 mt-2">{{ latest_assessment.notes }}</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Profile summary -->
+    <div class="card bg-base-200">
+      <div class="card-body p-4">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-semibold opacity-60">Mon profil gazon</h4>
+          <a href="{% url 'gardens:weather:questionnaire' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs">Modifier</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs">
+          <div>
+            <span class="opacity-50">Type</span>
+            <p class="font-medium">{{ lawn_profile.get_grass_type_display }}</p>
+          </div>
+          <div>
+            <span class="opacity-50">État</span>
+            <p class="font-medium">{{ lawn_profile.get_lawn_state_display }}</p>
+          </div>
+          <div>
+            <span class="opacity-50">Usage</span>
+            <p class="font-medium">{{ lawn_profile.get_usage_display }}</p>
+          </div>
+          <div>
+            <span class="opacity-50">Sol</span>
+            <p class="font-medium">{{ lawn_profile.get_soil_type_display }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

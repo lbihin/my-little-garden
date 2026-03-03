@@ -1,0 +1,71 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Évaluation gazon — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="flex flex-col gap-6 max-w-2xl">
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <a href="{% url 'gardens:weather:program' garden_slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Programme</a>
+      <div class="border-l pl-3">
+        <h2 class="text-2xl font-bold">📝 Évaluation de votre gazon</h2>
+        <p class="text-sm opacity-60">Faites le point pour affiner votre programme</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Overall rating -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">🌟 Impression générale</h3>
+          <p class="text-xs opacity-60 mb-3">Comment évaluez-vous l'état de votre pelouse ?</p>
+          <div class="flex gap-3 flex-wrap">
+            {% for value, label in form.overall_rating.field.choices %}
+              <label class="cursor-pointer">
+                <input type="radio" name="overall_rating" value="{{ value }}" class="hidden peer" {% if form.overall_rating.value|stringformat:"d" == value|stringformat:"d" %}checked{% endif %} />
+                <div class="px-4 py-3 rounded-xl border-2 border-base-300 peer-checked:border-primary peer-checked:bg-primary/10 transition-all text-center">
+                  <span class="text-2xl block">{{ label|truncatechars:2 }}</span>
+                  <span class="text-xs opacity-70">{{ label|cut:"😞 "|cut:"😕 "|cut:"🙂 "|cut:"😊 "|cut:"🤩 " }}</span>
+                </div>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Issues -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">⚠️ Problèmes observés</h3>
+          <p class="text-xs opacity-60 mb-3">Cochez tout ce qui s'applique</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {% for value, label in form.issues.field.choices %}
+              <label class="label cursor-pointer justify-start gap-3 p-2 rounded-lg hover:bg-base-200">
+                <input type="checkbox" name="issues" value="{{ value }}" class="checkbox checkbox-primary checkbox-sm" {% if value in form.issues.value %}checked{% endif %} />
+                <span class="text-sm">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-5">
+          <h3 class="card-title text-base">📝 Notes libres</h3>
+          <textarea name="notes" class="textarea textarea-bordered w-full h-24" placeholder="Observations, questions, remarques…">{{ form.notes.value|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex justify-end gap-3">
+        <a href="{% url 'gardens:weather:program' garden_slug=garden.slug %}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary">Enregistrer l'évaluation</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

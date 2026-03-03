@@ -20,6 +20,9 @@
       <li class="menu-title text-xs uppercase opacity-50 mt-3">Gazon</li>
       <ul>
         <li>
+          <a href="{% url 'gardens:weather:program' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'program' or request.resolver_match.url_name == 'questionnaire' or request.resolver_match.url_name == 'assessment' %}active{% endif %}">🏟️ Follow the Pro</a>
+        </li>
+        <li>
           <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">🧪 Entretien</a>
         </li>
         <li>
@@ -81,13 +84,17 @@
             <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}
                 
                 
+                
                 border-warning
+
 
 
               {% else %}
                 
                 
+                
                 border-success
+
 
 
               {% endif %}">
@@ -127,7 +134,9 @@
                     
                     
                     
+                    
                     border-error
+
 
 
 
@@ -137,7 +146,9 @@
                     
                     
                     
+                    
                     border-warning
+
 
 
 
@@ -164,7 +175,9 @@
                 
                 
                 
+                
                 border-info
+
 
 
 
@@ -174,7 +187,9 @@
                 
                 
                 
+                
                 border-success
+
 
 
 
@@ -287,19 +302,25 @@
               <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
                   
                   
+                  
                   text-info
+
 
 
                 {% elif report.soil_temp_roots > 25 %}
                   
                   
+                  
                   text-warning
+
 
 
                 {% else %}
                   
                   
+                  
                   text-success
+
 
 
                 {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
