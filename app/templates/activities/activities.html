@@ -11,6 +11,98 @@
       <a href="{% url 'gardens:activities:create_activity' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">+ Nouvelle activité</a>
     </div>
 
+    <!-- ═══════════════════════════════════════ -->
+    <!-- Greenkeeping advice details (lawn) -->
+    <!-- ═══════════════════════════════════════ -->
+    {% if report %}
+      <div class="collapse collapse-arrow bg-base-100 shadow-sm">
+        <input type="checkbox" checked />
+        <div class="collapse-title font-semibold text-base flex items-center gap-2">
+          🌱 Conseils gazon
+          <span class="badge badge-info badge-sm">{{ report.advices|length }}</span>
+        </div>
+        <div class="collapse-content">
+          <p class="text-xs opacity-50 mb-3">📍 {{ location_source }}
+            · Saison : {{ report.season|capfirst }}
+            · {{ report.generated_at }}</p>
+          <div class="space-y-2">
+            {% for advice in report.advices %}
+              <div class="flex items-start gap-3 p-3 rounded-lg {% if advice.status.value == 'danger' %}
+                  
+                  bg-error/10
+
+                {% elif advice.status.value == 'warn' %}
+                  
+                  bg-warning/10
+
+                {% elif advice.status.value == 'ok' %}
+                  
+                  bg-success/10
+
+                {% else %}
+                  
+                  bg-base-200/40
+
+                {% endif %} hover:bg-base-200/70 transition-colors">
+                <span class="text-xl mt-0.5 shrink-0">{{ advice.icon }}</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
+                    <span class="badge badge-xs shrink-0 {% if advice.status.value == 'danger' %}
+                        
+                        badge-error
+
+                      {% elif advice.status.value == 'warn' %}
+                        
+                        badge-warning
+
+                      {% elif advice.status.value == 'ok' %}
+                        
+                        badge-success
+
+                      {% else %}
+                        
+                        badge-info badge-outline
+
+                      {% endif %}">
+                      {{ advice.status.value }}
+                    </span>
+                  </div>
+                  <p class="text-xs opacity-60 mt-1 leading-relaxed">{{ advice.detail }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          {% if report.watering %}
+            <div class="divider text-xs opacity-40">Bilan d'arrosage hebdomadaire</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="stat bg-base-200/40 rounded-box p-3">
+                <div class="stat-title text-xs">ET₀ semaine</div>
+                <div class="stat-value text-lg">{{ report.watering.weekly_et0|floatformat:0 }} mm</div>
+              </div>
+              <div class="stat bg-base-200/40 rounded-box p-3">
+                <div class="stat-title text-xs">Besoin ({{ report.watering.et0_replacement_pct }}%)</div>
+                <div class="stat-value text-lg">{{ report.watering.weekly_need|floatformat:0 }} mm</div>
+              </div>
+              <div class="stat bg-base-200/40 rounded-box p-3">
+                <div class="stat-title text-xs">🌧️ Pluie prévue</div>
+                <div class="stat-value text-lg">{{ report.watering.weekly_precip|floatformat:0 }} mm</div>
+              </div>
+              <div class="stat bg-base-200/40 rounded-box p-3">
+                <div class="stat-title text-xs">Déficit</div>
+                <div class="stat-value text-lg {% if report.watering.weekly_deficit > 0 %}
+                    text-warning
+                  {% else %}
+                    text-success
+                  {% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }} mm</div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
     {% if activities %}
       <div class="overflow-x-auto" id="activities-table">
         {% include 'activities/partials/table.html' %}

@@ -16,7 +16,11 @@
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <h4 class="font-semibold text-sm">{{ s.title }}</h4>
-                  <span class="text-xs opacity-40">{{ s.plant_name }}</span>
+                  {% if s.is_universal %}
+                    <span class="text-xs opacity-40">Toutes vos plantes</span>
+                  {% else %}
+                    <span class="text-xs opacity-40">{{ s.plant_name }}</span>
+                  {% endif %}
                 </div>
                 {% if s.priority == 3 %}
                   <span class="badge badge-error badge-xs shrink-0">Important</span>

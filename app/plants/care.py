@@ -26,16 +26,23 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CareSuggestion:
-    """A suggested care task for a plant."""
+    """A suggested care task for a plant (or group of plants).
 
-    plant_id: int
-    plant_name: str
-    plant_slug: str
+    Genus-specific suggestions target a single plant.
+    Universal / weather suggestions are grouped: *plant_names* lists
+    every affected plant so the UI can display them once.
+    """
+
+    plant_id: int  # primary plant id (first in group for universal)
+    plant_name: str  # display label (or comma-joined names for universal)
+    plant_slug: str  # primary plant slug
     title: str
     detail: str
     priority: int  # 1=Basse, 2=Moyenne, 3=Haute
     icon: str
     category: str  # pruning, watering, fertilizing, protection, treatment, harvest
+    is_universal: bool = False  # True for seasonal / weather rules
+    plant_names: list[str] | None = None  # all affected plant names
 
 
 # ─── Genus-specific care rules ───────────────────────────────────────
@@ -875,53 +882,65 @@ def suggest_care_tasks(
                     )
                 )
 
-        # 2) Universal seasonal rules
+    # ─── 2) Universal seasonal rules (grouped, emitted once) ─────
+    if plants:
         for rule in SEASONAL_RULES:
             if month not in rule["months"]:
                 continue
-
-            key = f"{plant_id}:{rule['title']}"
-            if key in seen_keys:
-                continue
             if rule["title"].lower().strip() in existing_normalized:
+                continue
+
+            # Already emitted?
+            key = f"universal:{rule['title']}"
+            if key in seen_keys:
                 continue
             seen_keys.add(key)
 
+            # Collect all plant names for the label
+            names = [p.common_name or p.scientific_name or "Plante" for p in plants]
+            first = plants[0]
             suggestions.append(
                 CareSuggestion(
-                    plant_id=plant_id,
-                    plant_name=plant_name,
-                    plant_slug=plant_slug,
+                    plant_id=first.pk,
+                    plant_name="Toutes vos plantes",
+                    plant_slug=first.slug,
                     title=rule["title"],
                     detail=rule["detail"],
                     priority=rule["priority"],
                     icon=rule["icon"],
                     category=rule["category"],
+                    is_universal=True,
+                    plant_names=names,
                 )
             )
 
-        # 3) Weather-based rules
+    # ─── 3) Weather-based rules (grouped, emitted once) ──────────
+    if plants:
         for rule in WEATHER_RULES:
             if not _check_weather_rule(rule, air_temp, recent_rain_mm, weekly_deficit):
                 continue
-
-            key = f"{plant_id}:{rule['title']}"
-            if key in seen_keys:
-                continue
             if rule["title"].lower().strip() in existing_normalized:
+                continue
+
+            key = f"weather:{rule['title']}"
+            if key in seen_keys:
                 continue
             seen_keys.add(key)
 
+            names = [p.common_name or p.scientific_name or "Plante" for p in plants]
+            first = plants[0]
             suggestions.append(
                 CareSuggestion(
-                    plant_id=plant_id,
-                    plant_name=plant_name,
-                    plant_slug=plant_slug,
+                    plant_id=first.pk,
+                    plant_name="Toutes vos plantes",
+                    plant_slug=first.slug,
                     title=rule["title"],
                     detail=rule["detail"],
                     priority=rule["priority"],
                     icon=rule["icon"],
                     category=rule["category"],
+                    is_universal=True,
+                    plant_names=names,
                 )
             )
 

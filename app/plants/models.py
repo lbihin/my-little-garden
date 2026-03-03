@@ -112,6 +112,11 @@ class PlantTask(models.Model):
         (3, "Haute"),
     ]
 
+    SOURCE_CHOICES = [
+        ("manual", "Ajout manuel"),
+        ("suggestion", "Conseil automatique"),
+    ]
+
     plant = models.ForeignKey(Plant, on_delete=models.CASCADE, related_name="tasks")
     title = models.CharField(max_length=200)
     notes = models.TextField(blank=True, default="")
@@ -123,6 +128,12 @@ class PlantTask(models.Model):
     due_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(blank=True, null=True)
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default="manual",
+        help_text="How this task was created",
+    )
 
     class Meta:
         ordering = ["done", "-priority", "due_date"]

@@ -19,6 +19,33 @@ class ActivityListView(LoginRequiredMixin, ListView):
         garden = get_object_or_404(Garden, slug=self.kwargs["garden_slug"])
         context["garden"] = garden
         context["address"] = garden.address
+
+        # Include greenkeeping report so we can show lawn advice details
+        try:
+            from weather.greenkeeping import analyse
+            from weather.services import fetch_weather
+
+            if garden.address and garden.address.latitude and garden.address.longitude:
+                lat = float(garden.address.latitude)
+                lon = float(garden.address.longitude)
+                context["location_source"] = garden.address.city or garden.address.name
+            else:
+                lat, lon = 48.8566, 2.3522
+                context["location_source"] = "Paris (par défaut)"
+
+            weather = fetch_weather(lat, lon)
+            report = analyse(
+                weather,
+                profile=garden.watering_profile,
+                surface=garden.surface or 0,
+            )
+            context["report"] = report
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception("Greenkeeping analysis failed")
+            context["report"] = None
+
         return context
 
     def get_queryset(self):

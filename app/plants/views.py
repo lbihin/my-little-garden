@@ -222,6 +222,7 @@ def suggestion_accept_view(request, garden_slug, slug):
                 title=title,
                 notes=notes,
                 priority=min(max(priority, 1), 3),
+                source="suggestion",
             )
 
     tasks = plant.tasks.all()

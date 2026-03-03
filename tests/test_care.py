@@ -260,9 +260,44 @@ class TestSuggestCareTasks:
             pk=2, common_name="Rosier", scientific_name="Rosa gallica", slug="rosier"
         )
         result = suggest_care_tasks([lavande, rose], month=7)
-        plant_names = {s.plant_name for s in result}
-        assert "Lavande" in plant_names
-        assert "Rosier" in plant_names
+        # Genus-specific suggestions still target individual plants
+        genus_names = {s.plant_name for s in result if not s.is_universal}
+        assert "Lavande" in genus_names
+        assert "Rosier" in genus_names
+
+    def test_universal_rules_not_duplicated_across_plants(self):
+        """Seasonal/weather rules appear once even with multiple plants."""
+        p1 = _mock_plant(pk=1, common_name="Lavande", slug="lavande")
+        p2 = _mock_plant(
+            pk=2, common_name="Rosier", scientific_name="Rosa gallica", slug="rosier"
+        )
+        result = suggest_care_tasks([p1, p2], month=4)
+        # "Désherbage de printemps" should appear exactly once
+        count = sum(1 for s in result if s.title == "Désherbage de printemps")
+        assert count == 1
+
+    def test_universal_suggestion_is_marked_universal(self):
+        plant = _mock_plant()
+        result = suggest_care_tasks([plant], month=4)
+        weeding = [s for s in result if s.title == "Désherbage de printemps"]
+        assert len(weeding) == 1
+        assert weeding[0].is_universal is True
+
+    def test_weather_rule_not_duplicated_across_plants(self):
+        p1 = _mock_plant(pk=1, slug="p1")
+        p2 = _mock_plant(
+            pk=2, common_name="Rosier", scientific_name="Rosa gallica", slug="p2"
+        )
+        result = suggest_care_tasks([p1, p2], month=1, air_temp=-5)
+        frost_count = sum(1 for s in result if s.title == "Protection contre le gel")
+        assert frost_count == 1
+
+    def test_genus_specific_not_marked_universal(self):
+        plant = _mock_plant()
+        result = suggest_care_tasks([plant], month=7)
+        harvest = [s for s in result if s.title == "Récolte de la lavande"]
+        assert len(harvest) == 1
+        assert harvest[0].is_universal is False
 
     def test_genus_guessed_from_common_name(self):
         plant = _mock_plant(

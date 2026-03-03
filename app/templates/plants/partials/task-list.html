@@ -27,6 +27,9 @@
           </button>
         </form>
         <span class="flex-1 text-sm {% if task.done %}line-through{% endif %}">{{ task.title }}</span>
+        {% if task.source == 'suggestion' %}
+          <span class="badge badge-accent badge-xs" title="Créé depuis un conseil">💡</span>
+        {% endif %}
         {% if task.priority == 3 %}
           <span class="badge badge-error badge-xs">!</span>
         {% elif task.priority == 1 %}
