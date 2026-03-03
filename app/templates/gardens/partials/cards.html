@@ -10,7 +10,7 @@
     {% for garden in gardens %}
       <div class="card card-border bg-base-100 shadow-sm hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ garden.get_absolute_url }}'">
         <figure>
-          <img src="https://picsum.photos/seed/garden{{ garden.pk }}/400/200" alt="{{ garden.name }}" class="h-40 w-full object-cover" />
+          <img src="{{ garden.get_card_image_url }}" alt="{{ garden.name }}" class="h-40 w-full object-cover" loading="lazy" />
         </figure>
         <div class="card-body">
           <h2 class="card-title">{{ garden.name }}</h2>

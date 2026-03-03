@@ -133,6 +133,8 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
                 )
                 weather = context.get("weather")
                 current = context.get("current", {})
+                report = context.get("report")
+                watering = report.watering if report else None
                 context["care_suggestions"] = suggest_care_tasks(
                     plants=plants,
                     air_temp=current.get("air_temp"),
@@ -143,6 +145,7 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
                         else None
                     ),
                     existing_task_titles=existing,
+                    weekly_deficit=(watering.weekly_deficit if watering else None),
                 )
         except Exception:
             logger.exception("Care suggestions failed")

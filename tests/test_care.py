@@ -70,13 +70,40 @@ class TestCheckWeatherRule:
         rule = {"condition": "heat"}
         assert _check_weather_rule(rule, air_temp=25, recent_rain_mm=10) is False
 
-    def test_drought_triggered(self):
+    def test_drought_triggered_hot_and_dry(self):
         rule = {"condition": "drought"}
-        assert _check_weather_rule(rule, air_temp=25, recent_rain_mm=0.5) is True
+        assert _check_weather_rule(rule, air_temp=28, recent_rain_mm=0.5) is True
 
-    def test_drought_not_triggered(self):
+    def test_drought_not_triggered_enough_rain(self):
         rule = {"condition": "drought"}
-        assert _check_weather_rule(rule, air_temp=25, recent_rain_mm=15) is False
+        assert _check_weather_rule(rule, air_temp=28, recent_rain_mm=15) is False
+
+    def test_drought_not_triggered_cold_weather(self):
+        """At 8°C drought is irrelevant — ET₀ is too low."""
+        rule = {"condition": "drought"}
+        assert _check_weather_rule(rule, air_temp=8, recent_rain_mm=0) is False
+
+    def test_drought_not_triggered_mild_weather(self):
+        """At 18°C drought should still not trigger (threshold 22°C)."""
+        rule = {"condition": "drought"}
+        assert _check_weather_rule(rule, air_temp=18, recent_rain_mm=0) is False
+
+    def test_drought_suppressed_by_zero_deficit(self):
+        """When greenkeeping shows no deficit, drought is suppressed."""
+        rule = {"condition": "drought"}
+        assert (
+            _check_weather_rule(rule, air_temp=30, recent_rain_mm=0, weekly_deficit=0)
+            is False
+        )
+
+    def test_drought_still_fires_with_positive_deficit(self):
+        rule = {"condition": "drought"}
+        assert (
+            _check_weather_rule(
+                rule, air_temp=30, recent_rain_mm=0, weekly_deficit=12.0
+            )
+            is True
+        )
 
     def test_no_weather_data(self):
         rule = {"condition": "frost"}
@@ -179,11 +206,27 @@ class TestSuggestCareTasks:
         titles = [s.title for s in result]
         assert "Arrosage renforcé (canicule)" not in titles
 
-    def test_drought_warning(self):
+    def test_drought_warning_hot_and_dry(self):
         plant = _mock_plant()
         result = suggest_care_tasks([plant], month=8, air_temp=28, recent_rain_mm=0)
         titles = [s.title for s in result]
         assert "Attention sécheresse" in titles
+
+    def test_no_drought_warning_when_cold(self):
+        """No drought at 8°C even without rain — ET₀ is negligible."""
+        plant = _mock_plant()
+        result = suggest_care_tasks([plant], month=3, air_temp=8, recent_rain_mm=0)
+        titles = [s.title for s in result]
+        assert "Attention sécheresse" not in titles
+
+    def test_no_drought_warning_when_deficit_covered(self):
+        """No drought when greenkeeping says water needs are met."""
+        plant = _mock_plant()
+        result = suggest_care_tasks(
+            [plant], month=8, air_temp=30, recent_rain_mm=0, weekly_deficit=0
+        )
+        titles = [s.title for s in result]
+        assert "Attention sécheresse" not in titles
 
     def test_excludes_existing_tasks(self):
         plant = _mock_plant()

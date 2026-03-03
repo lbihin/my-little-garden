@@ -126,6 +126,22 @@ class Garden(models.Model):
     def get_delete_url(self):
         return reverse("gardens:delete", kwargs={"slug": self.slug})
 
+    def get_card_image_url(self):
+        """Return a location-based static map URL or a default garden image.
+
+        Uses the free OpenStreetMap static-map service when the garden
+        has geocoded coordinates.  Falls back to a generic garden image.
+        """
+        if self.address and self.address.latitude and self.address.longitude:
+            lat = self.address.latitude
+            lon = self.address.longitude
+            return (
+                f"https://staticmap.openstreetmap.de/staticmap.php"
+                f"?center={lat},{lon}&zoom=15&size=400x200&maptype=mapnik"
+                f"&markers={lat},{lon},green-pushpin"
+            )
+        return "/static/img/default-garden.svg"
+
 
 @receiver(pre_save, sender=Garden)
 def garden_pre_save(sender, instance, *args, **kwargs):

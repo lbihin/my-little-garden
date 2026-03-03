@@ -747,15 +747,32 @@ def _check_weather_rule(
     rule: dict,
     air_temp: float | None,
     recent_rain_mm: float | None,
+    weekly_deficit: float | None = None,
 ) -> bool:
-    """Check if a weather-based rule's condition is met."""
+    """Check if a weather-based rule's condition is met.
+
+    For drought, the rule is only triggered when temperatures are high
+    enough for significant evapotranspiration (> 22 °C) AND recent
+    rainfall is very low.  If the greenkeeping watering analysis has
+    already determined that the weekly water deficit is covered
+    (deficit ≤ 0), the drought warning is suppressed.
+    """
     condition = rule["condition"]
     if condition == "frost" and air_temp is not None:
         return air_temp < -3
     if condition == "heat" and air_temp is not None:
         return air_temp > 30
-    if condition == "drought" and recent_rain_mm is not None:
-        return recent_rain_mm < 2  # Less than 2mm in the last 48h
+    if condition == "drought":
+        # Drought is only meaningful when evapotranspiration is
+        # significant – that requires warm weather.
+        if air_temp is not None and air_temp <= 22:
+            return False
+        # If the greenkeeping report shows no watering deficit, the
+        # plants' water needs are already covered by rainfall.
+        if weekly_deficit is not None and weekly_deficit <= 0:
+            return False
+        if recent_rain_mm is not None:
+            return recent_rain_mm < 2  # Less than 2 mm in the last 48 h
     return False
 
 
@@ -787,6 +804,7 @@ def suggest_care_tasks(
     soil_temp: float | None = None,
     recent_rain_mm: float | None = None,
     existing_task_titles: set[str] | None = None,
+    weekly_deficit: float | None = None,
 ) -> list[CareSuggestion]:
     """
     Generate care suggestions for a list of plants.
@@ -798,6 +816,8 @@ def suggest_care_tasks(
         soil_temp: Current soil temperature at 6cm (°C).
         recent_rain_mm: Total precipitation in last 48h (mm).
         existing_task_titles: Set of existing task titles (to avoid duplicates).
+        weekly_deficit: Weekly watering deficit from greenkeeping analysis
+            (mm). When ≤ 0 the plants' water needs are covered.
 
     Returns:
         List of CareSuggestion objects, sorted by priority (highest first).
@@ -882,7 +902,7 @@ def suggest_care_tasks(
 
         # 3) Weather-based rules
         for rule in WEATHER_RULES:
-            if not _check_weather_rule(rule, air_temp, recent_rain_mm):
+            if not _check_weather_rule(rule, air_temp, recent_rain_mm, weekly_deficit):
                 continue
 
             key = f"{plant_id}:{rule['title']}"

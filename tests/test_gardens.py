@@ -88,3 +88,23 @@ class TestAddress:
         assert (
             "street" not in field_names
         )  # empty string excluded? Actually "" is falsy
+
+
+class TestGetCardImageUrl:
+    def test_returns_static_map_with_coordinates(self, garden, db):
+        addr = Address.objects.create(name="Jardin", latitude=48.8566, longitude=2.3522)
+        garden.address = addr
+        garden.save()
+        url = garden.get_card_image_url()
+        assert "staticmap.openstreetmap.de" in url
+        assert "48.8566" in url
+        assert "2.3522" in url
+
+    def test_returns_default_image_without_address(self, garden):
+        assert garden.get_card_image_url() == "/static/img/default-garden.svg"
+
+    def test_returns_default_image_without_coordinates(self, garden, db):
+        addr = Address.objects.create(name="Jardin")
+        garden.address = addr
+        garden.save()
+        assert garden.get_card_image_url() == "/static/img/default-garden.svg"
