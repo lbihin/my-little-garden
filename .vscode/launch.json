@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django: Run Server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/app/manage.py",
+            "args": [
+                "runserver",
+                "8000"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "envFile": "${workspaceFolder}/app/.env",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "console": "integratedTerminal"
+        },
+    ]
+}

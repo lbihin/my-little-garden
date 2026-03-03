@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block content %}
+  <div class="flex flex-1">
+    <!-- Sidebar -->
+    <aside class="menu bg-base-200 w-56 p-4 gap-1">
+      <!-- Garden name -->
+      <li class="menu-title text-sm font-bold tracking-wide">{{ garden.name }}</li>
+      <ul>
+        <li>
+          <a href="{% url 'gardens:detail' slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'detail' %}active{% endif %}">🏠 Tableau de bord</a>
+        </li>
+      </ul>
+
+      <!-- Gazon -->
+      <li class="menu-title text-xs uppercase opacity-50 mt-3">Gazon</li>
+      <ul>
+        <li>
+          <a href="{% url 'gardens:activities:index' garden_slug=garden.slug %}">🧪 Entretien</a>
+        </li>
+        <li>
+          <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">🌤️ Conditions du jardin</a>
+        </li>
+      </ul>
+
+      <!-- Plantes -->
+      <li class="menu-title text-xs uppercase opacity-50 mt-3">Plantes</li>
+      <ul>
+        <li>
+          <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}" class="{% if request.resolver_match.app_name == 'plants' and request.resolver_match.url_name == 'list' %}active{% endif %}">🌺 Mes plantes</a>
+        </li>
+        <li>
+          <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}" class="{% if request.resolver_match.url_name == 'identify' %}active{% endif %}">🔍 Identifier</a>
+        </li>
+      </ul>
+
+      <!-- Outils -->
+      <li class="menu-title text-xs uppercase opacity-50 mt-3">Outils</li>
+      <ul>
+        <li class="disabled">
+          <a>📅 Calendrier</a>
+        </li>
+        <li>
+          <a href="{{ garden.get_edit_url }}">⚙️ Paramètres</a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main area -->
+    <div class="flex-1 p-6">
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
+        <p class="text-xs opacity-50 italic">Dernière mise à jour : {{ garden.get_last_update }}</p>
+        <div class="mt-2">
+          {% include 'gardens/partials/garden-address.html' %}
+        </div>
+      </div>
+
+      {% block garden_detail_content %}
+        <div class="divider"></div>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- "On fait quoi aujourd'hui ?" section -->
+        <!-- ═══════════════════════════════════════ -->
+        <h2 class="text-xl font-bold mb-4">☀️ On fait quoi aujourd'hui ?</h2>
+
+        {% if report %}
+          <p class="text-sm opacity-60 mb-5">📍 {{ location_source }}
+            · Saison : {{ report.season|capfirst }}
+            · {{ report.generated_at }}</p>
+        {% endif %}
+
+        <!-- Quick-action cards grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+          <!-- 1. Watering summary card -->
+          {% if report.watering %}
+            <div class="card bg-base-100 shadow-sm border-l-4 {% if report.watering.weekly_deficit > 0 %}
+                
+                border-warning
+
+              {% else %}
+                
+                border-success
+
+              {% endif %}">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title text-sm gap-1">🚿 Arrosage</h3>
+                  <span class="badge badge-outline badge-sm">{{ report.watering.profile_label }}</span>
+                </div>
+                {% if report.watering.weekly_deficit > 0 %}
+                  <p class="text-sm mt-1">
+                    Déficit de <strong>{{ report.watering.weekly_deficit|floatformat:0 }} mm</strong> cette semaine
+                  </p>
+                  {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
+                    <p class="text-xs opacity-60">
+                      → Arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} L</strong> sur {{ report.watering.surface }} m²
+                    </p>
+                  {% endif %}
+                  <!-- Mini progress bar -->
+                  <div class="w-full bg-base-200 rounded-full h-2 mt-2">
+                    <div class="h-full rounded-full bg-warning" style="width: min({% widthratio report.watering.weekly_precip report.watering.weekly_need 100 %}%, 100%)"></div>
+                  </div>
+                  <div class="text-xs opacity-40 mt-1">{{ report.watering.weekly_precip|floatformat:0 }} / {{ report.watering.weekly_need|floatformat:0 }} mm couverts par la pluie</div>
+                {% else %}
+                  <p class="text-sm mt-1 text-success">✓ Besoins en eau couverts cette semaine</p>
+                {% endif %}
+                <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs mt-2 opacity-50 hover:opacity-100 self-end">Voir plus →</a>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- 2. Key weather alerts from greenkeeping -->
+          {% if report %}
+            {% for advice in report.advices %}
+              {% if advice.status.value == 'warn' or advice.status.value == 'danger' %}
+                <div class="card bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'danger' %}
+                    
+                    
+                    
+                    border-error
+
+
+
+                  {% else %}
+                    
+                    
+                    
+                    border-warning
+
+
+
+                  {% endif %}">
+                  <div class="card-body p-4">
+                    <div class="flex items-start gap-2">
+                      <span class="text-xl">{{ advice.icon }}</span>
+                      <div>
+                        <h4 class="font-semibold text-sm">{{ advice.title }}</h4>
+                        <p class="text-xs opacity-70 mt-1">{{ advice.detail }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          <!-- 3. Plant tasks card -->
+          {% if plant_count > 0 %}
+            <div class="card bg-base-100 shadow-sm border-l-4 {% if plant_tasks_pending_total > 0 %}
+                
+                
+                
+                border-info
+
+
+
+              {% else %}
+                
+                
+                
+                border-success
+
+
+
+              {% endif %}">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title text-sm gap-1">🌺 Plantes</h3>
+                  <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs">Voir tout →</a>
+                </div>
+                {% if plant_tasks_pending_total > 0 %}
+                  <p class="text-sm mt-1">
+                    <strong>{{ plant_tasks_pending_total }}</strong> tâche{{ plant_tasks_pending_total|pluralize }} à faire
+                  </p>
+                  <ul class="text-xs mt-2 space-y-1">
+                    {% for task in plant_tasks_pending %}
+                      <li class="flex items-center gap-1">
+                        {% if task.priority == 3 %}
+                          <span class="badge badge-error badge-xs">!</span>
+                        {% endif %}
+                        <span>{{ task.title }}</span>
+                        <span class="opacity-40">— {{ task.plant.common_name }}</span>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                  {% if plant_tasks_pending_total > 5 %}
+                    <p class="text-xs opacity-40 mt-1">… et {{ plant_tasks_pending_total|add:'-5' }} autre{{ plant_tasks_pending_total|add:'-5'|pluralize }}</p>
+                  {% endif %}
+                {% else %}
+                  <p class="text-sm mt-1 text-success">✓ Tout est à jour !</p>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="card bg-base-100 shadow-sm border-l-4 border-base-300">
+              <div class="card-body p-4">
+                <h3 class="card-title text-sm gap-1">🌺 Plantes</h3>
+                <p class="text-sm mt-1 opacity-60">Aucune plante dans ce jardin.</p>
+                <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-xs btn-outline mt-2">＋ Ajouter une plante</a>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- 3.5 Care suggestions -->
+          {% if care_suggestions %}
+            <div class="card bg-base-100 shadow-sm border-l-4 border-accent">
+              <div class="card-body p-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title text-sm gap-1">💡 Conseils du moment</h3>
+                  <span class="badge badge-accent badge-sm">{{ care_suggestions|length }}</span>
+                </div>
+                <p class="text-xs opacity-50 mt-1">Basés sur vos plantes, la saison et la météo.</p>
+                <ul class="text-xs mt-2 space-y-2">
+                  {% for s in care_suggestions|slice:':6' %}
+                    <li class="flex items-start gap-2">
+                      <span class="text-base mt-0.5 shrink-0">{{ s.icon }}</span>
+                      <div class="flex-1">
+                        <div class="flex items-center gap-1">
+                          <span class="font-semibold">{{ s.title }}</span>
+                          {% if s.priority == 3 %}
+                            <span class="badge badge-error badge-xs">!</span>
+                          {% endif %}
+                        </div>
+                        <span class="opacity-40">{{ s.plant_name }}</span>
+                      </div>
+                    </li>
+                  {% endfor %}
+                </ul>
+                {% if care_suggestions|length > 6 %}
+                  <p class="text-xs opacity-40 mt-1">… et {{ care_suggestions|length|add:'-6' }} autre{{ care_suggestions|length|add:'-6'|pluralize }}</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- 4. 🎋 Profiter du jardin — humorous card (always shown) -->
+          <div class="card bg-base-100 shadow-sm border-l-4 border-success">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm gap-1">🍹 Profiter du jardin</h3>
+              <p class="text-sm mt-1">La tâche la plus importante de la journée&nbsp;!</p>
+              <p class="text-xs opacity-60 mt-1 italic">Un jardinier heureux fait un jardin heureux. Prenez le temps de vous asseoir et d'admirer votre travail. ☕🌿</p>
+              <div class="flex items-center gap-2 mt-2">
+                <progress class="progress progress-success w-full" value="100" max="100"></progress>
+                <span class="text-xs text-success font-semibold whitespace-nowrap">Toujours ✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- Quick weather snapshot -->
+        <!-- ═══════════════════════════════════════ -->
+        {% if report %}
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold">🌤️ Conditions du jardin</h3>
+            <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100">Voir plus →</a>
+          </div>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌡️ Air</div>
+              <div class="stat-value text-lg">{{ report.air_temp|floatformat:1 }}°C</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3" title="Zone racines (~6 cm)">
+              <div class="stat-title text-xs">🌾 Sol</div>
+              <div class="stat-value text-lg {% if report.soil_temp_roots < 8 %}
+                  
+                  text-info
+
+                {% elif report.soil_temp_roots > 25 %}
+                  
+                  text-warning
+
+                {% else %}
+                  
+                  text-success
+
+                {% endif %}">{{ report.soil_temp_roots|floatformat:1 }}°C</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">💧 Humidité</div>
+              <div class="stat-value text-lg">{{ report.moisture_surface|floatformat:2 }}</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌧️ Pluie 24h</div>
+              <div class="stat-value text-lg">{{ report.precip_last_24h|floatformat:1 }}</div>
+              <div class="stat-desc">mm</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">🌧️ Prévue</div>
+              <div class="stat-value text-lg">{{ report.precip_next_24h|floatformat:1 }}</div>
+              <div class="stat-desc">mm (24h)</div>
+            </div>
+            <div class="stat bg-base-100 shadow-sm rounded-box p-3">
+              <div class="stat-title text-xs">💨 Vent</div>
+              <div class="stat-value text-lg">{{ report.wind_speed|floatformat:0 }}</div>
+              <div class="stat-desc">km/h</div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- All greenkeeping advice — traffic-light -->
+        <!-- ═══════════════════════════════════════ -->
+        {% if report %}
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold">🌱 Conseils gazon</h3>
+            <a href="{% url 'gardens:weather:dashboard' garden_slug=garden.slug %}" class="btn btn-ghost btn-xs opacity-50 hover:opacity-100">Voir plus →</a>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+            {% for advice in report.advices %}
+              <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-100 shadow-sm">
+                <span class="w-3 h-3 rounded-full shrink-0 {% if advice.status.value == 'ok' %}
+                    bg-success
+                  {% elif advice.status.value == 'info' %}
+                    bg-info
+                  {% elif advice.status.value == 'warn' %}
+                    bg-warning
+                  {% elif advice.status.value == 'danger' %}
+                    bg-error
+                  {% endif %}">
+
+                </span>
+                <span class="text-sm">{{ advice.icon }} {{ advice.title }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Fallback if report is unavailable -->
+        {% if not report %}
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h3 class="card-title text-sm">Description du jardin</h3>
+              <p>{{ garden.description|default:'Aucune description.' }}</p>
+              {% if garden.surface %}
+                <div class="mt-2">
+                  <span class="badge badge-outline">{{ garden.surface }} m²</span>
+                </div>
+              {% endif %}
+              <div class="alert alert-info mt-4">
+                <span>Ajoutez une adresse à votre jardin pour obtenir des conseils de greenkeeping personnalisés.</span>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Garden description (always shown) -->
+        {% if report and garden.description %}
+          <div class="card bg-base-100 shadow-sm mt-4">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm">📋 Description</h3>
+              <p class="text-sm">{{ garden.description }}</p>
+              {% if garden.surface %}
+                <div class="mt-2">
+                  <span class="badge badge-outline">{{ garden.surface }} m²</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      {% endblock %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {% if garden %}
+    Modifier {{ garden.name }}
+  {% else %}
+    Nouveau Jardin
+  {% endif %}— My Little Garden
+{% endblock %}
+
+{% block content %}
+  <div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-4">
+      <ul>
+        <li>
+          <a href="{% url 'gardens:list' %}">Jardins</a>
+        </li>
+        <li>
+          {% if garden %}
+            {{ garden.name }}
+          {% else %}
+            Nouveau
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">
+          {% if garden %}
+            Modifier « {{ garden.name }} »
+          {% else %}
+            Nouveau Jardin
+          {% endif %}
+        </h2>
+
+        {% url 'gardens:length-name' as len_name_url %}
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Name field -->
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Nom du jardin</legend>
+            <input type="text" name="name" value="{{ form.name.value|default:'' }}" maxlength="{{ form.name.field.max_length }}" class="input input-bordered w-full {% if form.name.errors %}input-error{% endif %}" hx-trigger="keyup changed delay:100ms" hx-post="{{ len_name_url }}" hx-swap="innerHTML" hx-target="#char-count" required />
+            {% if form.name.errors %}
+              <p class="label text-error text-sm">{{ form.name.errors.0 }}</p>
+            {% endif %}
+            <p class="label text-xs opacity-50" id="char-count">0 / {{ form.name.field.max_length }} caractères</p>
+          </fieldset>
+
+          <!-- Description field -->
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Description</legend>
+            <textarea name="description" class="textarea textarea-bordered w-full h-40" placeholder="Décrivez votre jardin…">{{ form.description.value|default:'' }}</textarea>
+          </fieldset>
+
+          <!-- Surface -->
+          <fieldset class="fieldset mb-4">
+            <legend class="fieldset-legend">Surface du jardin</legend>
+            <label class="input input-bordered w-full sm:w-48 flex items-center gap-2">
+              <input type="number" name="surface" value="{{ form.surface.value|default:'' }}" min="0" class="grow" placeholder="ex. 200" />
+              <span class="text-sm opacity-50">m²</span>
+            </label>
+            <p class="label text-xs opacity-50">Permet de calculer le volume total d'arrosage en litres</p>
+          </fieldset>
+
+          <!-- Watering profile — radio card selector -->
+          <div class="divider">🚿 Profil d'arrosage</div>
+          <p class="text-xs opacity-50 mb-4">Choisissez une stratégie d'arrosage. Elle détermine les seuils et la fréquence des recommandations.</p>
+
+          <input type="hidden" name="watering_profile" id="watering-profile-input" value="{{ form.watering_profile.value|default:'standard' }}" />
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" id="profile-grid">
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="standard" onclick="selectProfile('standard')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">🌿</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Standard</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">70 %</span>
+                  </div>
+                  <p class="text-xs opacity-50 mt-1">Beau jardin, arrosage équilibré. Remplace 70 % de l'ET₀.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="eco" onclick="selectProfile('eco')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">💧</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Éco-responsable</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">60 %</span>
+                  </div>
+                  <p class="text-xs opacity-50 mt-1">Économe en eau, gazon soigné. Arrosage ciblé et espacé.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="resilient" onclick="selectProfile('resilient')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">🌾</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Résilient</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">30 %</span>
+                  </div>
+                  <p class="text-xs opacity-50 mt-1">Accepte la dormance estivale. Le gazon jaunit mais reverdit après.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md" data-profile="laissez_faire" onclick="selectProfile('laissez_faire')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">🍃</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Laisser-faire</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">0 %</span>
+                  </div>
+                  <p class="text-xs opacity-50 mt-1">Aucun arrosage. La nature décide, vous observez seulement.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card relative border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-md sm:col-span-2" data-profile="pro" onclick="selectProfile('pro')">
+              <div class="profile-check absolute top-2 right-2 w-5 h-5 rounded-full items-center justify-center text-xs text-primary-content" style="display:none;background:var(--color-primary)">✓</div>
+              <div class="flex items-start gap-3">
+                <span class="text-3xl leading-none mt-0.5">⛳</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h4 class="font-semibold text-sm">Greenkeeper pro</h4>
+                    <span class="text-xs font-mono opacity-60 shrink-0">100 %</span>
+                  </div>
+                  <p class="text-xs opacity-50 mt-1">Gazon de golf, tolérance zéro. Remplacement intégral de l'évapotranspiration.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            function selectProfile(profile) {
+              document.getElementById('watering-profile-input').value = profile
+              document.querySelectorAll('.profile-card').forEach(function (card) {
+                var check = card.querySelector('.profile-check')
+                if (card.dataset.profile === profile) {
+                  card.style.borderColor = 'var(--color-primary)'
+                  card.style.backgroundColor = 'color-mix(in oklch, var(--color-primary) 12%, transparent)'
+                  card.style.boxShadow = '0 0 0 2px color-mix(in oklch, var(--color-primary) 30%, transparent)'
+                  if (check) check.style.display = 'flex'
+                } else {
+                  card.style.borderColor = ''
+                  card.style.backgroundColor = ''
+                  card.style.boxShadow = ''
+                  if (check) check.style.display = 'none'
+                }
+              })
+            }
+            // Initialize selection on page load
+            document.addEventListener('DOMContentLoaded', function () {
+              selectProfile(document.getElementById('watering-profile-input').value || 'standard')
+            })
+          </script>
+
+          <!-- Address section -->
+          <div class="divider">📍 Adresse (optionnel)</div>
+          <p class="text-xs opacity-50 mb-3">Renseignez l'adresse pour localiser le jardin et obtenir les données météo.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <fieldset class="fieldset sm:col-span-2">
+              <legend class="fieldset-legend">Rue</legend>
+              <input type="text" name="addr-street" value="{{ address_form.street.value|default:'' }}" class="input input-bordered w-full" placeholder="12 rue des Lilas" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Code postal</legend>
+              <input type="text" name="addr-postal_code" value="{{ address_form.postal_code.value|default:'' }}" class="input input-bordered w-full" placeholder="75001" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Ville</legend>
+              <input type="text" name="addr-city" value="{{ address_form.city.value|default:'' }}" class="input input-bordered w-full" placeholder="Paris" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Région / État</legend>
+              <input type="text" name="addr-state" value="{{ address_form.state.value|default:'' }}" class="input input-bordered w-full" placeholder="Île-de-France" />
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Pays</legend>
+              <input type="text" name="addr-country" value="{{ address_form.country.value|default:'' }}" class="input input-bordered w-full" placeholder="France" />
+            </fieldset>
+          </div>
+
+          <!-- Submit -->
+          <div class="card-actions justify-end">
+            <a href="{% url 'gardens:list' %}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

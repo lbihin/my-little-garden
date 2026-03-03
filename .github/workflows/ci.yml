@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main, dev]
+  workflow_call:
+
+jobs:
+  # ─────────────────────────────────────────
+  # 1. Lint
+  # ─────────────────────────────────────────
+  lint:
+    name: Lint (ruff)
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Lint with ruff
+        run: uvx ruff check .
+
+  # ─────────────────────────────────────────
+  # 2. Tests Python
+  # ─────────────────────────────────────────
+  test:
+    name: Tests (pytest)
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-insecure-key-not-for-production
+      DEBUG: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Apply migrations
+        working-directory: app
+        run: uv run python manage.py migrate --no-input
+
+      - name: Run tests
+        run: uv run pytest tests/ --tb=short -q
+
+  # ─────────────────────────────────────────
+  # 3. Build CSS (Tailwind)
+  # ─────────────────────────────────────────
+  build-css:
+    name: Build CSS (Tailwind)
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Tailwind input exists
+        id: tailwind_input
+        run: |
+          if [ -f app/static/tw/tailwind-input.css ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.tailwind_input.outputs.exists == 'true'
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Node dependencies
+        if: steps.tailwind_input.outputs.exists == 'true'
+        run: npm ci
+
+      - name: Build Tailwind CSS
+        if: steps.tailwind_input.outputs.exists == 'true'
+        run: npm run build
+
+      - name: Upload compiled CSS
+        if: steps.tailwind_input.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-css
+          path: app/static/css/mlghome-ui.css
+          retention-days: 7
+
+      - name: Skip Tailwind build
+        if: steps.tailwind_input.outputs.exists != 'true'
+        run: echo "app/static/tw/tailwind-input.css not found, skipping Tailwind build."

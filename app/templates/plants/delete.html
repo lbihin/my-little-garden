@@ -1,0 +1,23 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Supprimer {{ plant.common_name }} — {{ garden.name }}
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="divider"></div>
+  <div class="max-w-md mx-auto">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body items-center text-center">
+        <span class="text-4xl mb-2">⚠️</span>
+        <h2 class="card-title">Supprimer « {{ plant.common_name }} » ?</h2>
+        <p class="text-sm opacity-60 mt-2">Cette action est irréversible. Toutes les tâches associées seront également supprimées.</p>
+        <form method="post" class="mt-4 flex gap-2">
+          {% csrf_token %}
+          <a href="{{ plant.get_absolute_url }}" class="btn btn-ghost">Annuler</a>
+          <button type="submit" class="btn btn-error">Supprimer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

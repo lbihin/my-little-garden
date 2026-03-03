@@ -1,0 +1,52 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Plantes — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="divider"></div>
+
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <h2 class="text-xl font-bold">🌺 Mes plantes</h2>
+    <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">＋ Ajouter une plante</a>
+  </div>
+
+  {% if plants %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for plant in plants %}
+        <a href="{{ plant.get_absolute_url }}" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+          {% if plant.photo_url %}
+            <figure class="h-40 overflow-hidden">
+              <img src="{{ plant.photo_url }}" alt="{{ plant.common_name }}" class="w-full h-full object-cover" />
+            </figure>
+          {% else %}
+            <figure class="h-40 bg-base-200 flex items-center justify-center">
+              <span class="text-5xl opacity-30">🌿</span>
+            </figure>
+          {% endif %}
+          <div class="card-body p-4">
+            <h3 class="card-title text-sm">{{ plant.common_name }}</h3>
+            {% if plant.scientific_name %}
+              <p class="text-xs italic opacity-50">{{ plant.scientific_name }}</p>
+            {% endif %}
+            {% if plant.pending_tasks_count > 0 %}
+              <div class="badge badge-warning badge-sm gap-1">{{ plant.pending_tasks_count }} tâche{{ plant.pending_tasks_count|pluralize }}</div>
+            {% else %}
+              <div class="badge badge-success badge-sm gap-1">✓ À jour</div>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body items-center text-center py-12">
+        <span class="text-5xl mb-3">🌱</span>
+        <h3 class="font-semibold text-lg">Aucune plante pour le moment</h3>
+        <p class="text-sm opacity-60 mb-4">Ajoutez vos premières plantes pour suivre leur entretien.</p>
+        <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm">Ajouter une plante</a>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Conditions du jardin — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block extra_head %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1" title="Retour au tableau de bord">← Tableau de bord</a>
+        <div class="border-l pl-3">
+          <h2 class="text-2xl font-bold">🌤️ Conditions du jardin</h2>
+          <p class="text-sm opacity-60">
+            📍 {{ location_source }}
+            {% if report %}
+              · Saison : {{ report.season|capfirst }}
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="join">
+          <a href="?days=1" class="join-item btn btn-sm {% if days == 1 %}btn-active{% endif %}">24h</a>
+          <a href="?days=3" class="join-item btn btn-sm {% if days == 3 %}btn-active{% endif %}">3 jours</a>
+          <a href="?days=7" class="join-item btn btn-sm {% if days == 7 %}btn-active{% endif %}">7 jours</a>
+        </div>
+        <a href="?days={{ days }}&refresh=1" class="btn btn-sm btn-ghost" title="Actualiser les données météo">🔄</a>
+      </div>
+    </div>
+
+    {% if not weather.ok %}
+      <div role="alert" class="alert alert-error">
+        <span>{{ weather.error }}</span>
+      </div>
+    {% else %}
+      <!-- Current snapshot cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🌡️ Air</div>
+          <div class="stat-value text-xl">{{ current.air_temp|floatformat:1 }}°C</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">💧 Humidité</div>
+          <div class="stat-value text-xl">{{ current.humidity|floatformat:0 }}%</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🌧️ Pluie</div>
+          <div class="stat-value text-xl">{{ current.precipitation|floatformat:1 }}</div>
+          <div class="stat-desc">mm/h</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">💨 Vent</div>
+          <div class="stat-value text-xl">{{ current.wind_speed|floatformat:0 }}</div>
+          <div class="stat-desc">km/h</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🌱 Sol surface</div>
+          <div class="stat-value text-xl">{{ current.soil_0cm|floatformat:1 }}°C</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4" title="Zone racines (~6 cm) — la pousse reprend au-dessus de 8 °C">
+          <div class="stat-title text-xs">🌾 Sol racines</div>
+          <div class="stat-value text-xl {% if current.soil_6cm < 8 %}
+              
+              
+              text-info
+
+
+            {% elif current.soil_6cm > 25 %}
+              
+              
+              text-warning
+
+
+            {% else %}
+              
+              
+              text-success
+
+
+            {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
+          <div class="stat-desc">à 6 cm</div>
+        </div>
+        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
+          <div class="stat-title text-xs">🪱 Sol profond</div>
+          <div class="stat-value text-xl">{{ current.soil_54cm|floatformat:1 }}°C</div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════ -->
+      <!-- Arrosage détaillé (HTMX swappable) -->
+      <!-- ═══════════════════════════════════════ -->
+      {% include 'weather/partials/watering.html' %}
+
+      <!-- ═══════════════════════════════════════ -->
+      <!-- Conseils greenkeeping — traffic-light -->
+      <!-- ═══════════════════════════════════════ -->
+      {% if report.advices %}
+        <div>
+          <h3 class="text-lg font-semibold mb-3">🌱 Conseils gazon</h3>
+          <div class="flex flex-col gap-1">
+            {% for advice in report.advices %}
+              <div class="collapse collapse-arrow bg-base-100 shadow-sm border-l-4 {% if advice.status.value == 'ok' %}
+                  border-success
+                {% elif advice.status.value == 'info' %}
+                  border-info
+                {% elif advice.status.value == 'warn' %}
+                  border-warning
+                {% elif advice.status.value == 'danger' %}
+                  border-error
+                {% endif %}">
+                <input type="checkbox" />
+                <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
+                  <span class="w-3 h-3 rounded-full shrink-0 {% if advice.status.value == 'ok' %}
+                      bg-success
+                    {% elif advice.status.value == 'info' %}
+                      bg-info
+                    {% elif advice.status.value == 'warn' %}
+                      bg-warning
+                    {% elif advice.status.value == 'danger' %}
+                      bg-error
+                    {% endif %}">
+
+                  </span>
+                  <span>{{ advice.icon }} {{ advice.title }}</span>
+                </div>
+                <div class="collapse-content px-4 pb-3">
+                  <p class="text-xs opacity-70 ml-6">{{ advice.detail }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- ═══════════════════════════════════════ -->
+      <!-- Graphiques -->
+      <!-- ═══════════════════════════════════════ -->
+      <h3 class="text-lg font-semibold">📊 Tendances</h3>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Precipitation + ET₀ chart -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h4 class="card-title text-sm">🌧️ Pluie vs Évapotranspiration</h4>
+            <div class="w-full" style="min-height: 280px;">
+              <canvas id="precipChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Soil temperature chart -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h4 class="card-title text-sm">🌱 Température du sol</h4>
+            <div class="w-full" style="min-height: 280px;">
+              <canvas id="soilTempChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if weather.ok %}
+    <script>
+(function() {
+    const labels = {{ chart_labels|safe }};
+    const shortLabels = labels.map(l => {
+        const d = new Date(l);
+        return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})
+             + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    });
+
+    const commonOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: { x: { ticks: { maxTicksToLimit: 10, font: { size: 10 }, maxRotation: 45 } } },
+        elements: { point: { radius: 0 }, line: { tension: 0.3, borderWidth: 2 } },
+    };
+
+    // Precipitation + ET₀
+    new Chart(document.getElementById('precipChart'), {
+        type: 'bar',
+        data: {
+            labels: shortLabels,
+            datasets: [
+                { label: 'Pluie (mm)', data: {{ chart_precipitation|safe }}, backgroundColor: '#3b82f680', borderColor: '#3b82f6', borderWidth: 1, yAxisID: 'y', order: 2 },
+                { label: 'ET₀ (mm)', data: {{ chart_et0|safe }}, borderColor: '#f59e0b', backgroundColor: '#f59e0b22', type: 'line', yAxisID: 'y', order: 1 },
+                { label: 'Vent (km/h)', data: {{ chart_wind_speed|safe }}, borderColor: '#94a3b8', backgroundColor: '#94a3b822', type: 'line', yAxisID: 'y1', order: 3 },
+            ]
+        },
+        options: {
+            ...commonOpts,
+            scales: {
+                ...commonOpts.scales,
+                y:  { position: 'left',  title: { display: true, text: 'mm' }, beginAtZero: true },
+                y1: { position: 'right', title: { display: true, text: 'km/h' }, grid: { drawOnChartArea: false }, beginAtZero: true },
+            }
+        }
+    });
+
+    // 2. Soil temperatures
+    new Chart(document.getElementById('soilTempChart'), {
+        type: 'line',
+        data: {
+            labels: shortLabels,
+            datasets: [
+                { label: 'Surface (0 cm)', data: {{ chart_soil_0|safe }},  borderColor: '#84cc16' },
+                { label: '6 cm',           data: {{ chart_soil_6|safe }},  borderColor: '#22c55e' },
+                { label: '18 cm',          data: {{ chart_soil_18|safe }}, borderColor: '#14b8a6' },
+                { label: '54 cm',          data: {{ chart_soil_54|safe }}, borderColor: '#6366f1' },
+            ]
+        },
+        options: {
+            ...commonOpts,
+            scales: { ...commonOpts.scales, y: { title: { display: true, text: '°C' } } }
+        }
+    });
+})();
+</script>
+  {% endif %}
+{% endblock %}

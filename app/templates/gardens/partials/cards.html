@@ -1,0 +1,27 @@
+{% if not gardens.exists %}
+  <div class="text-center py-16">
+    <p class="text-xl mb-2">Aucun jardin trouvé…</p>
+    {% if not is_search %}
+      <p class="text-sm opacity-60">Cliquez sur « Ajouter un jardin » pour commencer.</p>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for garden in gardens %}
+      <div class="card card-border bg-base-100 shadow-sm hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ garden.get_absolute_url }}'">
+        <figure>
+          <img src="https://picsum.photos/seed/garden{{ garden.pk }}/400/200" alt="{{ garden.name }}" class="h-40 w-full object-cover" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title">{{ garden.name }}</h2>
+          <p class="text-sm opacity-70 line-clamp-2">{{ garden.description|default:'Pas de description' }}</p>
+          <p class="text-xs opacity-50">Mis à jour {{ garden.get_last_update }}</p>
+          <div class="card-actions justify-end mt-2">
+            <a href="{{ garden.get_edit_url }}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">✏️ Modifier</a>
+            <button class="btn btn-error btn-sm btn-outline" onclick="event.stopPropagation();" hx-post="{{ garden.get_delete_url }}" hx-target="#garden-list" hx-confirm="Êtes-vous certain de vouloir supprimer « {{ garden.name }} » ?">🗑️ Supprimer</button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

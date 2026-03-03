@@ -1,0 +1,70 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  {{ plant.common_name }} — {{ garden.name }}
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="divider"></div>
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+    <div>
+      <h2 class="text-xl font-bold">{{ plant.common_name }}</h2>
+      {% if plant.scientific_name %}
+        <p class="text-sm italic opacity-50">{{ plant.scientific_name }}</p>
+      {% endif %}
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="{% url 'gardens:plants:edit' garden_slug=garden.slug slug=plant.slug %}" class="btn btn-ghost btn-sm">✏️ Modifier</a>
+      <a href="{% url 'gardens:plants:delete' garden_slug=garden.slug slug=plant.slug %}" class="btn btn-error btn-ghost btn-sm">🗑️ Supprimer</a>
+    </div>
+  </div>
+
+  <!-- Photo + Notes -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="md:col-span-1">
+      {% if plant.photo_url %}
+        <img src="{{ plant.photo_url }}" alt="{{ plant.common_name }}" class="rounded-xl w-full object-cover max-h-64" />
+      {% else %}
+        <div class="bg-base-200 rounded-xl h-48 flex items-center justify-center">
+          <span class="text-6xl opacity-20">🌿</span>
+        </div>
+      {% endif %}
+      {% if plant.identification_score %}
+        <div class="mt-2 text-xs opacity-50 text-center">Identifié à {{ plant.identification_score|floatformat:0 }}% par PlantNet</div>
+      {% endif %}
+    </div>
+    <div class="md:col-span-2">
+      {% if plant.notes %}
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="card-title text-sm">📋 Notes</h3>
+            <p class="text-sm whitespace-pre-line">{{ plant.notes }}</p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Care suggestions -->
+  {% include 'plants/partials/care-suggestions.html' %}
+
+  <!-- Tasks section -->
+  <div class="card bg-base-100 shadow-sm">
+    <div class="card-body p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="card-title text-base">📝 Tâches d'entretien</h3>
+        {% if pending_count > 0 %}
+          <span class="badge badge-warning">{{ pending_count }} à faire</span>
+        {% else %}
+          <span class="badge badge-success">✓ Tout fait !</span>
+        {% endif %}
+      </div>
+
+      <div id="task-list">
+        {% include 'plants/partials/task-list.html' %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<table class="table table-zebra w-full">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Commentaire</th>
+      <th>Quantité</th>
+      <th>Dernière MAJ</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for activity in activities %}
+      <tr class="hover">
+        <td class="font-mono text-sm">{{ activity.get_creation_date }}</td>
+        <td class="max-w-xs truncate">{{ activity.comment|default:'—' }}</td>
+        <td>{{ activity.get_quantity }}</td>
+        <td class="text-sm opacity-60">{{ activity.since_update }}</td>
+        <td>
+          <button class="btn btn-ghost btn-xs" hx-get="{{ activity.get_absolute_url }}" hx-target="#activity-detail" hx-swap="innerHTML">Détails</button>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div id="activity-detail" class="mt-4"></div>

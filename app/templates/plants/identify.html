@@ -1,0 +1,166 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Identifier une plante — {{ garden.name }}
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="divider"></div>
+  <div class="max-w-2xl">
+    <h2 class="text-xl font-bold mb-2">🔍 Identifier une plante</h2>
+    <p class="text-sm opacity-60 mb-5">Trouvez votre plante par son nom ou identifiez-la à partir d'une photo.</p>
+
+    <!-- Tab switcher -->
+    <div role="tablist" class="tabs tabs-border mb-6">
+      <a role="tab" class="tab {% if mode == 'search' %}tab-active{% endif %}" href="?mode=search">🌿 Recherche par nom</a>
+      <a role="tab" class="tab {% if mode == 'photo' %}tab-active{% endif %}" href="?mode=photo">📸 Identification par photo</a>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- Mode 1: Search by name (GBIF) -->
+    <!-- ═══════════════════════════════════════ -->
+    {% if mode == 'search' %}
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+          <p class="text-sm opacity-60 mb-3">Tapez le nom commun ou scientifique de votre plante.</p>
+          <input type="text" name="q" class="input input-bordered w-full" placeholder="ex. Lavande, Rosmarinus, Hortensia…" autocomplete="off" hx-get="{% url 'gardens:plants:identify-search' garden_slug=garden.slug %}" hx-trigger="input changed delay:400ms, keyup[key=='Enter']" hx-target="#search-results" hx-swap="innerHTML" hx-indicator="#search-spinner" />
+
+          <!-- Loading indicator -->
+          <div id="search-spinner" class="htmx-indicator flex justify-center py-4">
+            <span class="loading loading-spinner loading-sm"></span>
+          </div>
+
+          <!-- Results appear here via HTMX -->
+          <div id="search-results" class="mt-4"></div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- Mode 2: Photo identification (PlantNet) -->
+    <!-- ═══════════════════════════════════════ -->
+    {% if mode == 'photo' %}
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+          <p class="text-sm opacity-60 mb-3">Prenez ou choisissez une photo de votre plante. PlantNet analysera l'image et proposera des identifications.</p>
+
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset class="fieldset mb-4">
+              <legend class="fieldset-legend">Photo de la plante</legend>
+              <input type="file" name="photo" id="photo-input" accept="image/*" class="file-input file-input-bordered w-full" required />
+            </fieldset>
+
+            {# ── Image preview ── #}
+            <div id="photo-preview" class="mb-4 hidden">
+              <img id="photo-preview-img" src="" alt="Aperçu" class="max-h-48 rounded-lg border border-base-300 mx-auto" />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm gap-1">📸 Identifier</button>
+          </form>
+
+          <script>
+            document.getElementById('photo-input').addEventListener('change', function (e) {
+              const preview = document.getElementById('photo-preview')
+              const img = document.getElementById('photo-preview-img')
+              const file = e.target.files[0]
+              if (file) {
+                img.src = URL.createObjectURL(file)
+                preview.classList.remove('hidden')
+              } else {
+                preview.classList.add('hidden')
+              }
+            })
+          </script>
+
+          {% if photo_error %}
+            <div class="alert alert-error mt-4">
+              <span>{{ photo_error }}</span>
+            </div>
+          {% endif %}
+
+          {% if photo_result.success %}
+            <div class="divider">Résultats PlantNet</div>
+            <p class="text-sm opacity-60 mb-3">
+              Cliquez sur <strong>Ajouter</strong> pour la plante qui correspond.
+            </p>
+            <div class="space-y-3">
+              {% for r in photo_result.all_results %}
+                <div class="rounded-xl {% if forloop.first %}
+                    bg-primary/10 border border-primary/20
+                  {% else %}
+                    bg-base-200/50
+                  {% endif %} overflow-hidden">
+                  {# ── Reference images ── #}
+                  {% if r.images %}
+                    <div class="flex gap-1 overflow-x-auto p-2 pb-0">
+                      {% for img in r.images %}
+                        <div class="flex-shrink-0">
+                          <div class="tooltip" data-tip="{{ img.label }}">
+                            <img src="{{ img.url }}" alt="{{ img.label }}" class="w-16 h-16 object-cover rounded-lg border border-base-300" loading="lazy" onerror="this.parentElement.parentElement.remove()" />
+                          </div>
+                          <div class="text-center mt-0.5">
+                            <span class="text-[10px] opacity-50">{{ img.label }}</span>
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  {# ── Info + action ── #}
+                  <div class="flex items-center justify-between p-3 pt-2">
+                    <div class="flex-1">
+                      <span class="font-semibold text-sm">{{ r.common_name|default:r.scientific_name }}</span>
+                      {% if r.common_name %}
+                        <span class="text-xs italic opacity-50 ml-1">{{ r.scientific_name }}</span>
+                      {% endif %}
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="badge {% if r.score >= 50 %}
+                          badge-success
+                        {% elif r.score >= 20 %}
+                          badge-warning
+                        {% else %}
+                          badge-ghost
+                        {% endif %} badge-sm">
+                        {{ r.score|floatformat:0 }}%
+                      </span>
+                      <form method="post" action="{% url 'gardens:plants:identify-add' garden_slug=garden.slug %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="common_name" value="{{ r.common_name }}" />
+                        <input type="hidden" name="scientific_name" value="{{ r.scientific_name }}" />
+                        <input type="hidden" name="score" value="{{ r.score }}" />
+                        {% if r.images.0.url %}
+                          <input type="hidden" name="photo_url" value="{{ r.images.0.url }}" />
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary btn-xs">＋ Ajouter</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Best match quick-add highlight -->
+            {% if photo_result.common_name %}
+              <div class="alert alert-success mt-4 py-3">
+                <span class="text-sm">
+                  💡 Meilleure correspondance : <strong>{{ photo_result.common_name }}</strong>
+                  {% if photo_result.family %}
+                    <span class="opacity-60">({{ photo_result.family }})</span>
+                  {% endif %}— {{ photo_result.score|floatformat:0 }}% de confiance
+                </span>
+              </div>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Link to manual creation -->
+    <div class="mt-6 text-center">
+      <p class="text-sm opacity-40 mb-2">Vous ne trouvez pas votre plante ?</p>
+      <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-ghost btn-sm">✏️ Ajouter manuellement</a>
+    </div>
+  </div>
+{% endblock %}

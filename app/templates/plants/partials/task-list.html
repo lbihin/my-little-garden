@@ -1,0 +1,47 @@
+<!-- Task add form -->
+<form hx-post="{% url 'gardens:plants:task-create' garden_slug=plant.garden.slug slug=plant.slug %}" hx-target="#task-list" hx-swap="innerHTML" class="flex flex-wrap gap-2 mb-4">
+  {% csrf_token %}
+  <input type="text" name="title" class="input input-bordered input-sm flex-1 min-w-48" placeholder="Nouvelle tâche…" required />
+  <select name="priority" class="select select-bordered select-sm">
+    <option value="1">Basse</option>
+    <option value="2" selected>Moyenne</option>
+    <option value="3">Haute</option>
+  </select>
+  <input type="date" name="due_date" class="input input-bordered input-sm" />
+  <button type="submit" class="btn btn-primary btn-sm">Ajouter</button>
+</form>
+
+<!-- Task list -->
+{% if tasks %}
+  <ul class="space-y-1">
+    {% for task in tasks %}
+      <li class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200/50 group {% if task.done %}opacity-50{% endif %}">
+        <form hx-post="{% url 'gardens:plants:task-toggle' garden_slug=plant.garden.slug pk=task.pk %}" hx-target="#task-list" hx-swap="innerHTML">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-xs btn-circle">
+            {% if task.done %}
+              ☑️
+            {% else %}
+              ⬜
+            {% endif %}
+          </button>
+        </form>
+        <span class="flex-1 text-sm {% if task.done %}line-through{% endif %}">{{ task.title }}</span>
+        {% if task.priority == 3 %}
+          <span class="badge badge-error badge-xs">!</span>
+        {% elif task.priority == 1 %}
+          <span class="badge badge-ghost badge-xs">↓</span>
+        {% endif %}
+        {% if task.due_date %}
+          <span class="text-xs opacity-40">{{ task.due_date }}</span>
+        {% endif %}
+        <form hx-post="{% url 'gardens:plants:task-delete' garden_slug=plant.garden.slug pk=task.pk %}" hx-target="#task-list" hx-swap="innerHTML" class="opacity-0 group-hover:opacity-100 transition-opacity">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-xs text-error">✕</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-sm opacity-40 text-center py-4">Aucune tâche pour le moment.</p>
+{% endif %}

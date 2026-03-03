@@ -1,0 +1,25 @@
+{% extends 'gardens/details.html' %}
+
+{% block title %}
+  Activités — {{ garden.name }} — My Little Garden
+{% endblock %}
+
+{% block garden_detail_content %}
+  <div class="flex flex-col gap-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Activités</h2>
+      <a href="{% url 'gardens:activities:create_activity' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">+ Nouvelle activité</a>
+    </div>
+
+    {% if activities %}
+      <div class="overflow-x-auto" id="activities-table">
+        {% include 'activities/partials/table.html' %}
+      </div>
+    {% else %}
+      <div class="text-center py-12 opacity-60">
+        <p class="text-lg mb-1">Aucune activité enregistrée.</p>
+        <p class="text-sm">Commencez par ajouter une activité ci-dessus.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
