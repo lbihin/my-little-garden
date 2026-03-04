@@ -48,6 +48,46 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             "soil_54": weather.soil_temp_54cm[start:end],
         }
 
+    @staticmethod
+    def _build_focus_card(report):
+        """Return a concise next-action summary for the dashboard."""
+        if not report:
+            return {
+                "level": "info",
+                "title": "Pas de recommandation disponible",
+                "detail": "Les données météo sont incomplètes pour le moment.",
+            }
+
+        watering = report.watering
+        if watering:
+            profile_meta = WATERING_PROFILES.get(watering.profile, WATERING_PROFILES["standard"])
+            ignore = profile_meta["ignore_threshold"]
+            warn = profile_meta["warn_threshold"]
+
+            if watering.weekly_deficit <= ignore:
+                return {
+                    "level": "ok",
+                    "title": "Aucune action urgente",
+                    "detail": "Les besoins en eau sont couverts sur la période.",
+                }
+            if watering.weekly_deficit <= warn:
+                return {
+                    "level": "info",
+                    "title": "Arrosage léger conseillé",
+                    "detail": f"Déficit estimé: {watering.weekly_deficit:.0f} mm cette semaine.",
+                }
+            return {
+                "level": "warn",
+                "title": "Arrosage prioritaire",
+                "detail": f"Déficit important: {watering.weekly_deficit:.0f} mm cette semaine.",
+            }
+
+        return {
+            "level": "info",
+            "title": "Surveillance recommandée",
+            "detail": "Consultez les activités pour les actions détaillées.",
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         garden = get_object_or_404(Garden, slug=self.kwargs["garden_slug"])
@@ -81,6 +121,7 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
                 surface=garden.surface or 0,
             )
             context["report"] = report
+            context["focus"] = self._build_focus_card(report)
 
             # Profiles dict for inline selector
             context["profiles"] = WATERING_PROFILES
