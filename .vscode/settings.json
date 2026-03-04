@@ -9,12 +9,13 @@
     "python.testing.pytestEnabled": true,
     "python.defaultInterpreterPath": "python",
     "python.envFile": "${workspaceFolder}/app/.env",
-    "editor.codeActionsOnSave": {
-        "source.unusedImports": "explicit",
-        "source.organizeImports": "always"
-    },
     "editor.formatOnSaveMode": "file",
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "always",
+            "source.organizeImports.ruff": "always"
+        }
     }
 }

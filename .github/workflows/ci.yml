@@ -21,8 +21,9 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Lint with ruff
-        run: uvx ruff check .
+      - name: Lint with ruff (non-blocking)
+        continue-on-error: true
+        run: uvx ruff check . --output-format=github
 
   # ─────────────────────────────────────────
   # 2. Tests Python

@@ -100,8 +100,8 @@ class TestLawnAssessmentModel:
         assert "Zones dégarnies" in labels
 
     def test_ordering(self, lawn_profile):
-        a1 = LawnAssessment.objects.create(lawn_profile=lawn_profile, overall_rating=2)
-        a2 = LawnAssessment.objects.create(lawn_profile=lawn_profile, overall_rating=5)
+        LawnAssessment.objects.create(lawn_profile=lawn_profile, overall_rating=2)
+        LawnAssessment.objects.create(lawn_profile=lawn_profile, overall_rating=5)
         assessments = list(lawn_profile.assessments.all())
         # Ordering is -date; both same date, so just check all returned
         assert len(assessments) == 2
