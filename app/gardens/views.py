@@ -72,7 +72,7 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
 
         # Fetch weather + greenkeeping analysis for the dashboard
         try:
-            from weather.greenkeeping import analyse
+            from weather.greenkeeping import WATERING_PROFILES, analyse
             from weather.services import fetch_weather
 
             garden = self.object
@@ -92,6 +92,29 @@ class GardenDetailView(LoginRequiredMixin, DetailView):
             )
             context["report"] = report
             context["weather"] = weather
+
+            if report and report.watering:
+                watering = report.watering
+                profile_meta = WATERING_PROFILES.get(
+                    watering.profile, WATERING_PROFILES["standard"]
+                )
+                raw_deficit = float(watering.weekly_deficit)
+
+                if watering.profile == "pro":
+                    ignore_threshold = 0.0
+                elif watering.profile == "laissez_faire":
+                    ignore_threshold = float(raw_deficit)
+                else:
+                    ignore_threshold = float(profile_meta["ignore_threshold"])
+
+                actionable_deficit = max(0.0, raw_deficit - ignore_threshold)
+                actionable_total_litres = (
+                    actionable_deficit * watering.surface if watering.surface > 0 else 0.0
+                )
+
+                context["actionable_weekly_deficit"] = round(actionable_deficit, 1)
+                context["actionable_total_litres"] = round(actionable_total_litres, 0)
+
             if weather.ok:
                 context["current"] = weather.current_snapshot()
         except Exception:
