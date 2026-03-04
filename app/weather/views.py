@@ -88,6 +88,33 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             "detail": "Consultez les activités pour les actions détaillées.",
         }
 
+    @staticmethod
+    def _build_weekly_goal(report):
+        """Return one actionable weekly objective sentence for the user."""
+        if not report or not report.watering:
+            return "Surveillez l'humidité du sol et consultez les activités détaillées."
+
+        watering = report.watering
+        profile_meta = WATERING_PROFILES.get(watering.profile, WATERING_PROFILES["standard"])
+        ignore = profile_meta["ignore_threshold"]
+        warn = profile_meta["warn_threshold"]
+
+        if watering.weekly_deficit <= ignore:
+            return "Objectif semaine : ne pas arroser, les besoins sont couverts."
+
+        sessions = 1 if watering.weekly_deficit <= warn else 2
+        if watering.surface > 0 and watering.total_litres > 0:
+            litres_per_session = watering.total_litres / sessions
+            return (
+                f"Objectif semaine : {watering.total_litres:.0f} L au total "
+                f"en {sessions} passage(s) (~{litres_per_session:.0f} L/passage)."
+            )
+
+        return (
+            f"Objectif semaine : {watering.weekly_deficit:.0f} mm d'arrosage "
+            f"en {sessions} passage(s)."
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         garden = get_object_or_404(Garden, slug=self.kwargs["garden_slug"])
@@ -122,6 +149,7 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             )
             context["report"] = report
             context["focus"] = self._build_focus_card(report)
+            context["weekly_goal"] = self._build_weekly_goal(report)
 
             # Profiles dict for inline selector
             context["profiles"] = WATERING_PROFILES

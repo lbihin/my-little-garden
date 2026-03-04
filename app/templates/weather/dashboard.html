@@ -39,64 +39,85 @@
       </div>
     {% else %}
       <div class="card bg-base-100 shadow-sm border-l-4 {% if focus.level == 'ok' %}
+          
           border-success
+
         {% elif focus.level == 'warn' %}
+          
           border-warning
+
         {% else %}
+          
           border-info
+
         {% endif %}">
         <div class="card-body p-4">
           <h3 class="font-semibold text-base">Que faire maintenant</h3>
           <p class="text-lg font-bold">{{ focus.title }}</p>
           <p class="text-sm opacity-70">{{ focus.detail }}</p>
+          <p class="text-sm mt-1">
+            <span class="font-medium">Objectif de la semaine :</span> {{ weekly_goal }}
+          </p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div class="stat bg-base-100 shadow-sm rounded-box p-4" title="Zone racines (~6 cm) — la pousse reprend au-dessus de 8 °C">
           <div class="stat-title text-xs">Température sol racines</div>
           <div class="stat-value text-2xl {% if current.soil_6cm < 8 %}
+              
               text-info
+
             {% elif current.soil_6cm > 25 %}
+              
               text-warning
+
             {% else %}
+              
               text-success
+
             {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
           <div class="stat-desc">Indicateur principal de croissance</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
           <div class="stat-title text-xs">Déficit hydrique ({{ days }}j)</div>
           <div class="stat-value text-2xl {% if report.watering.weekly_deficit > 0 %}
+              
               text-warning
+
             {% else %}
+              
               text-success
+
             {% endif %}">{{ report.watering.weekly_deficit|floatformat:1 }} mm</div>
           <div class="stat-desc">À compenser par arrosage</div>
         </div>
-        <div class="stat bg-base-100 shadow-sm rounded-box p-4">
-          <div class="stat-title text-xs">Pluie récente (24h)</div>
-          <div class="stat-value text-2xl">{{ report.precip_last_24h|floatformat:1 }} mm</div>
-          <div class="stat-desc">Contexte immédiat</div>
+      </div>
+
+      <div class="collapse collapse-arrow bg-base-100 shadow-sm">
+        <input type="checkbox" />
+        <div class="collapse-title text-sm font-medium">Voir le détail d'arrosage</div>
+        <div class="collapse-content">
+          {% include 'weather/partials/watering.html' %}
         </div>
       </div>
 
-      {% include 'weather/partials/watering.html' %}
-
-      <h3 class="text-lg font-semibold flex items-center gap-2">
-        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
-        Tendances
-      </h3>
-      <div class="flex flex-wrap items-center gap-2 text-sm opacity-70">
-        <span class="badge badge-ghost">Pluie {{ trend_precip_total|floatformat:1 }} mm</span>
-        <span class="badge badge-ghost">ET₀ {{ trend_et0_total|floatformat:1 }} mm</span>
-        <span class="badge badge-ghost">Δ sol 6 cm{% if trend_soil6_delta > 0 %}+{% endif %}{{ trend_soil6_delta|floatformat:1 }}°C</span>
-      </div>
-
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body p-4">
-          <h4 class="card-title text-sm">Équilibre eau: pluie vs évapotranspiration</h4>
-          <div class="w-full" style="min-height: 280px;">
-            <canvas id="precipChart"></canvas>
+      <div class="collapse collapse-arrow bg-base-100 shadow-sm">
+        <input type="checkbox" />
+        <div class="collapse-title text-sm font-medium">Voir les tendances détaillées</div>
+        <div class="collapse-content">
+          <div class="flex flex-wrap items-center gap-2 text-sm opacity-70 mb-3">
+            <span class="badge badge-ghost">Pluie {{ trend_precip_total|floatformat:1 }} mm</span>
+            <span class="badge badge-ghost">ET₀ {{ trend_et0_total|floatformat:1 }} mm</span>
+            <span class="badge badge-ghost">Δ sol 6 cm{% if trend_soil6_delta > 0 %}+{% endif %}{{ trend_soil6_delta|floatformat:1 }}°C</span>
+          </div>
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body p-4">
+              <h4 class="card-title text-sm">Équilibre eau: pluie vs évapotranspiration</h4>
+              <div class="w-full" style="min-height: 260px;">
+                <canvas id="precipChart"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </div>
