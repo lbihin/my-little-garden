@@ -168,6 +168,51 @@ def _current_month() -> int:
     return datetime.now().month
 
 
+# Cool-season turf monthly crop coefficients (Kc) for temperate Europe.
+# Used to convert reference ET₀ to lawn ETc before applying profile ratio.
+COOL_SEASON_KC_BY_MONTH: dict[int, float] = {
+    1: 0.55,
+    2: 0.60,
+    3: 0.70,
+    4: 0.80,
+    5: 0.90,
+    6: 0.95,
+    7: 0.95,
+    8: 0.90,
+    9: 0.85,
+    10: 0.75,
+    11: 0.65,
+    12: 0.55,
+}
+
+
+def _weather_month(weather: WeatherData) -> int:
+    """Best-effort month from weather timeline, fallback to current month."""
+    if weather.times:
+        try:
+            idx = weather._current_index()
+            return datetime.fromisoformat(weather.times[idx]).month
+        except (ValueError, IndexError):
+            return _current_month()
+    return _current_month()
+
+
+def _soil_temperature_stress_coeff(soil_temp_c: float | None) -> float:
+    """FAO-style stress coefficient proxy based on root-zone soil temperature.
+
+    - <= 5 °C: dormant, no effective transpiration demand
+    - >= 10 °C: active growth, no temperature-related stress
+    - Linear ramp between 5 and 10 °C
+    """
+    if soil_temp_c is None:
+        return 1.0
+    if soil_temp_c <= 5:
+        return 0.0
+    if soil_temp_c >= 10:
+        return 1.0
+    return (soil_temp_c - 5.0) / 5.0
+
+
 # ---------------------------------------------------------------------------
 # Analysis functions – each appends Advice items
 # ---------------------------------------------------------------------------
@@ -396,12 +441,13 @@ def _analyse_watering(
     """
     Analyse watering needs based on the selected profile.
 
-    Uses the 7-day water budget approach:
-    1. Estimate weekly ET₀ from available data (extrapolated from the
-       forecast window).
-    2. Multiply by the profile's replacement ratio.
-    3. Subtract natural precipitation → net irrigation need.
-    4. Convert to L/m² (1 mm = 1 L/m²) and total litres for the garden.
+     Uses the 7-day water budget approach:
+     1. Estimate weekly ET₀ from available data (extrapolated from the
+         forecast window).
+     2. Convert ET₀ to ETc with seasonal Kc and soil-temperature Ks.
+     3. Apply profile replacement ratio.
+     4. Subtract natural precipitation → net irrigation need.
+     5. Convert to L/m² (1 mm = 1 L/m²) and total litres for the garden.
     """
     profile = WATERING_PROFILES.get(profile_key, WATERING_PROFILES["standard"])
 
@@ -425,9 +471,18 @@ def _analyse_watering(
     weekly_precip = total_precip * scale
     weekly_et0 = total_et0 * scale
 
-    # Profile-adjusted need
+    month = _weather_month(weather)
+    kc = COOL_SEASON_KC_BY_MONTH.get(month, 0.8)
+    snap = weather.current_snapshot()
+    soil_temp = snap.get("soil_6cm")
+    if soil_temp is None:
+        soil_temp = report.soil_temp_roots if report.soil_temp_roots > 0 else None
+    ks = _soil_temperature_stress_coeff(soil_temp)
+
+    # ETc then profile-adjusted need
     et0_pct = profile["et0_pct"]
-    weekly_need = weekly_et0 * et0_pct
+    weekly_etc = weekly_et0 * kc * ks
+    weekly_need = weekly_etc * et0_pct
     weekly_deficit = max(0, weekly_need - weekly_precip)
 
     # Litres
@@ -492,7 +547,7 @@ def _analyse_watering(
     if weekly_deficit <= ignore:
         detail = (
             f"Besoin estimé : {weekly_need:.0f} mm/sem "
-            f"({et0_pct:.0%} de l'ET₀). "
+            f"({et0_pct:.0%} de l'ETc; Kc={kc:.2f}, Ks={ks:.2f}). "
             f"Pluies prévues : {weekly_precip:.0f} mm. "
             f"Aucun arrosage nécessaire."
         )

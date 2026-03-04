@@ -238,10 +238,17 @@ class TestFertiliser:
 class TestWatering:
     """Profile-based watering analysis using 7-day water budget."""
 
-    def _weather_with_et0(self, et0_per_hour=0.3, precip_per_hour=0.0, hours=72):
+    def _weather_with_et0(
+        self,
+        et0_per_hour=0.3,
+        precip_per_hour=0.0,
+        hours=72,
+        month=7,
+    ):
         """Create weather data with controlled ET₀ and precipitation."""
+        date_prefix = f"2026-{month:02d}-15"
         return WeatherData(
-            times=[f"2026-07-15T{i % 24:02d}:00" for i in range(hours)],
+            times=[f"{date_prefix}T{i % 24:02d}:00" for i in range(hours)],
             air_temperature=[25.0] * hours,
             humidity=[50.0] * hours,
             precipitation=[precip_per_hour] * hours,
@@ -363,6 +370,24 @@ class TestWatering:
         _analyse_watering(weather, report, profile_key="standard", surface=0)
         assert report.watering is not None
         assert report.watering.total_litres == 0
+
+    def test_march_low_et0_keeps_need_low(self):
+        """Regression: early spring should not produce unrealistic watering volumes."""
+        # March + cool soil + low ET₀: demand should stay below ignore threshold.
+        weather = self._weather_with_et0(
+            et0_per_hour=0.03,
+            precip_per_hour=0.0,
+            month=3,
+        )
+        weather.soil_temp_6cm = [8.0] * len(weather.times)
+
+        report = _make_report(grass_growing=True)
+        _analyse_watering(weather, report, profile_key="standard", surface=50)
+
+        assert report.watering is not None
+        assert report.watering.weekly_need < 5
+        assert report.watering.total_litres < 250
+        assert any("pas besoin" in a.title.lower() for a in report.advices)
 
 
 # ---------------------------------------------------------------------------
