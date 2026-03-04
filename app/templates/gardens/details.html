@@ -7,11 +7,18 @@
 {% block content %}
   <div class="flex flex-1 min-h-0">
     <!-- Sidebar -->
-    <aside class="w-56 bg-base-100 border-r border-base-200 flex flex-col shrink-0">
+    <aside class="w-52 bg-base-100 border-r border-base-200 flex flex-col shrink-0">
       <!-- Garden header -->
-      <div class="px-4 py-4 border-b border-base-200">
+      <div class="px-4 py-3.5 border-b border-base-200">
         <p class="font-semibold text-sm truncate leading-snug" title="{{ garden.name }}">{{ garden.name }}</p>
-        <p class="text-xs text-base-content/40 mt-0.5 truncate">{{ garden.address.city|default:'Mon jardin' }}</p>
+        {% if garden.address.city %}
+          <p class="text-xs text-base-content/40 mt-0.5 flex items-center gap-1 truncate">
+            <i data-lucide="map-pin" class="w-3 h-3 shrink-0"></i>{{ garden.address.city }}
+          </p>
+        {% endif %}
+        {% if garden.surface %}
+          <p class="text-xs text-base-content/30 mt-0.5">{{ garden.surface }} m²</p>
+        {% endif %}
       </div>
 
       <!-- Nav -->
@@ -26,8 +33,8 @@
           Tableau de bord
         </a>
 
-        <!-- Gazon -->
-        <p class="text-[10px] font-semibold uppercase tracking-widest text-base-content/35 px-3 pt-4 pb-1">Gazon</p>
+        <!-- Pelouse -->
+        <p class="text-[10px] font-semibold uppercase tracking-widest text-base-content/35 px-3 pt-4 pb-1">Pelouse</p>
 
         <a href="{% url 'gardens:weather:program' garden_slug=garden.slug %}"
           class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors {% if request.resolver_match.url_name == 'program' or request.resolver_match.url_name == 'questionnaire' or request.resolver_match.url_name == 'assessment' %}
@@ -59,11 +66,11 @@
           Conditions
         </a>
 
-        <!-- Plantes -->
-        <p class="text-[10px] font-semibold uppercase tracking-widest text-base-content/35 px-3 pt-4 pb-1">Plantes</p>
+        <!-- Ornement -->
+        <p class="text-[10px] font-semibold uppercase tracking-widest text-base-content/35 px-3 pt-4 pb-1">Ornement</p>
 
         <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors {% if request.resolver_match.app_name == 'plants' and request.resolver_match.url_name == 'list' %}
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors {% if request.resolver_match.app_name == 'plants' %}
             bg-primary/10 text-primary font-medium
           {% else %}
             text-base-content/60 hover:text-base-content hover:bg-base-200
@@ -71,43 +78,19 @@
           <i data-lucide="leaf" class="w-4 h-4 shrink-0"></i>
           Mes plantes
         </a>
+      </nav>
 
-        <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors {% if request.resolver_match.url_name == 'identify' %}
-            bg-primary/10 text-primary font-medium
-          {% else %}
-            text-base-content/60 hover:text-base-content hover:bg-base-200
-          {% endif %}">
-          <i data-lucide="scan-search" class="w-4 h-4 shrink-0"></i>
-          Identifier
-        </a>
-
-        <!-- Outils -->
-        <p class="text-[10px] font-semibold uppercase tracking-widest text-base-content/35 px-3 pt-4 pb-1">Outils</p>
-
-        <span class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-base-content/30 cursor-not-allowed select-none">
-          <i data-lucide="calendar-days" class="w-4 h-4 shrink-0"></i>
-          Calendrier
-          <span class="ml-auto text-[9px] font-medium bg-base-200 px-1.5 py-0.5 rounded">Bientôt</span>
-        </span>
-
-        <a href="{{ garden.get_edit_url }}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-base-content/60 hover:text-base-content hover:bg-base-200">
-          <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+      <!-- Bottom: settings -->
+      <div class="px-2 pb-3 pt-2 border-t border-base-200">
+        <a href="{{ garden.get_edit_url }}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-base-content/35 hover:text-base-content hover:bg-base-200">
+          <i data-lucide="settings" class="w-3.5 h-3.5 shrink-0"></i>
           Paramètres
         </a>
-      </nav>
+      </div>
     </aside>
 
     <!-- Main area -->
-    <div class="flex-1 p-6">
-      <div class="mb-4">
-        <h1 class="text-2xl font-bold">{{ garden.name }}</h1>
-        <p class="text-xs opacity-50 italic">Dernière mise à jour : {{ garden.get_last_update }}</p>
-        <div class="mt-2">
-          {% include 'gardens/partials/garden-address.html' %}
-        </div>
-      </div>
-
+    <div class="flex-1 p-6 overflow-y-auto">
       {% block garden_detail_content %}
         <div class="divider"></div>
 
@@ -120,12 +103,7 @@
         </h2>
 
         {% if report %}
-          <p class="text-sm opacity-60 mb-5 flex items-center gap-1.5">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
-            {{ location_source }}
-            · Saison : {{ report.season|capfirst }}
-            · {{ report.generated_at }}
-          </p>
+          <p class="text-sm opacity-60 mb-5">Saison&nbsp;: {{ report.season|capfirst }} · {{ report.generated_at }}</p>
         {% endif %}
 
         <!-- Quick-action cards grid -->
@@ -137,7 +115,9 @@
                 
                 
                 
+                
                 border-warning
+
 
 
 
@@ -147,7 +127,9 @@
                 
                 
                 
+                
                 border-success
+
 
 
 
@@ -194,7 +176,9 @@
                     
                     
                     
+                    
                     border-error
+
 
 
 
@@ -208,7 +192,9 @@
                     
                     
                     
+                    
                     border-warning
+
 
 
 
@@ -239,7 +225,9 @@
                 
                 
                 
+                
                 border-info
+
 
 
 
@@ -253,7 +241,9 @@
                 
                 
                 
+                
                 border-success
+
 
 
 
@@ -385,7 +375,9 @@
                   
                   
                   
+                  
                   text-info
+
 
 
 
@@ -395,7 +387,9 @@
                   
                   
                   
+                  
                   text-warning
+
 
 
 
@@ -405,7 +399,9 @@
                   
                   
                   
+                  
                   text-success
+
 
 
 

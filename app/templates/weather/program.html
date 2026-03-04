@@ -35,11 +35,15 @@
           <a href="?month={{ m }}"
             class="join-item btn btn-xs {% if m == selected_month %}
               
+              
               btn-primary
+
 
             {% elif m == current_month %}
               
+              
               btn-outline btn-primary
+
 
             {% endif %}">
             {{ m }}
@@ -97,20 +101,26 @@
             {% for task in cat.list %}
               <div class="collapse collapse-arrow bg-base-100 shadow-sm mb-1 border-l-4 {% if task.priority == 1 %}
                   
+                  
                   border-primary
+
 
                 {% elif task.priority == 2 %}
                   
+                  
                   border-info
+
 
                 {% else %}
                   
+                  
                   border-base-300
+
 
                 {% endif %}">
                 <input type="checkbox" />
                 <div class="collapse-title py-3 px-4 min-h-0 flex items-center gap-3 text-sm font-medium">
-                  <span>{{ task.icon }} {{ task.title }}</span>
+                  <span>{{ task.title }}</span>
                   {% if task.priority == 1 %}
                     <span class="badge badge-primary badge-xs">Important</span>
                   {% elif task.priority == 3 %}

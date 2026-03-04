@@ -5,14 +5,12 @@
 {% endblock %}
 
 {% block garden_detail_content %}
-  <div class="divider"></div>
-
   <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
     <h2 class="text-xl font-bold flex items-center gap-2">
       <i data-lucide="leaf" class="w-5 h-5 text-success"></i>
       Mes plantes
     </h2>
-    <a href="{% url 'gardens:plants:create' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">＋ Ajouter une plante</a>
+    <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">＋ Ajouter une plante</a>
   </div>
 
   {% if plants %}

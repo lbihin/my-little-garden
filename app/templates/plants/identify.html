@@ -5,7 +5,6 @@
 {% endblock %}
 
 {% block garden_detail_content %}
-  <div class="divider"></div>
   <div class="max-w-2xl">
     <h2 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="scan-search" class="w-5 h-5"></i> Identifier une plante</h2>
     <p class="text-sm opacity-60 mb-5">Trouvez votre plante par son nom ou identifiez-la à partir d'une photo.</p>
@@ -88,11 +87,15 @@
               {% for r in photo_result.all_results %}
                 <div class="rounded-xl {% if forloop.first %}
                     
+                    
                     bg-primary/10 border border-primary/20
+
 
                   {% else %}
                     
+                    
                     bg-base-200/50
+
 
                   {% endif %} overflow-hidden">
                   {# ── Reference images ── #}
@@ -122,15 +125,21 @@
                     <div class="flex items-center gap-2">
                       <span class="badge {% if r.score >= 50 %}
                           
+                          
                           badge-success
+
 
                         {% elif r.score >= 20 %}
                           
+                          
                           badge-warning
+
 
                         {% else %}
                           
+                          
                           badge-ghost
+
 
                         {% endif %} badge-sm">
                         {{ r.score|floatformat:0 }}%
