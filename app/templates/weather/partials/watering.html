@@ -45,10 +45,10 @@
           </div>
           <div class="flex justify-between text-xs mt-1">
             <span class="opacity-40">0 mm</span>
-            {% if report.watering.weekly_deficit > 0 %}
-              <span class="font-semibold text-warning">▲ Déficit : {{ report.watering.weekly_deficit|floatformat:0 }} mm ({{ report.watering.litres_per_m2|floatformat:0 }} L/m²)</span>
+            {% if actionable_weekly_deficit > 0 %}
+              <span class="font-semibold text-warning">▲ À corriger : {{ actionable_weekly_deficit|floatformat:0 }} mm (seuil profil déjà déduit)</span>
             {% else %}
-              <span class="font-semibold text-success">✓ Besoins couverts</span>
+              <span class="font-semibold text-success">✓ Pas d'arrosage requis selon votre profil</span>
             {% endif %}
             <span class="opacity-40">{{ report.watering.weekly_need|floatformat:0 }} mm</span>
           </div>
@@ -71,17 +71,21 @@
             <div class="text-lg font-bold">{{ report.watering.weekly_need|floatformat:0 }}</div>
             <div class="text-xs opacity-40">mm / semaine</div>
           </div>
-          <div class="text-center p-2 rounded-lg {% if report.watering.weekly_deficit > 0 %}bg-warning/10{% else %}bg-success/10{% endif %}">
+          <div class="text-center p-2 rounded-lg {% if actionable_weekly_deficit > 0 %}bg-warning/10{% else %}bg-success/10{% endif %}">
             <div class="text-xs opacity-50">À apporter</div>
-            <div class="text-lg font-bold {% if report.watering.weekly_deficit > 0 %}text-warning{% else %}text-success{% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }}</div>
+            <div class="text-lg font-bold {% if actionable_weekly_deficit > 0 %}text-warning{% else %}text-success{% endif %}">{{ actionable_weekly_deficit|floatformat:0 }}</div>
             <div class="text-xs opacity-40">mm</div>
           </div>
         </div>
 
         <!-- Total litres callout -->
-        {% if report.watering.surface > 0 and report.watering.total_litres > 0 %}
+        {% if report.watering.surface > 0 and actionable_total_litres > 0 %}
           <div class="alert alert-warning mt-3 py-2">
-            <span class="text-sm">💡 Pour vos <strong>{{ report.watering.surface }} m²</strong> : arrosez environ <strong>{{ report.watering.total_litres|floatformat:0 }} litres</strong> répartis sur la semaine</span>
+            <span class="text-sm">💡 Pour vos <strong>{{ report.watering.surface }} m²</strong> : arrosez environ <strong>{{ actionable_total_litres|floatformat:0 }} litres</strong> répartis sur la semaine</span>
+          </div>
+        {% elif report.watering.surface > 0 %}
+          <div class="alert alert-success mt-3 py-2">
+            <span class="text-sm">✓ Pour vos <strong>{{ report.watering.surface }} m²</strong> : aucun arrosage nécessaire cette semaine avec ce profil.</span>
           </div>
         {% endif %}
 
