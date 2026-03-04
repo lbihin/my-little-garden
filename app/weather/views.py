@@ -22,6 +22,32 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
 
     template_name = "weather/dashboard.html"
 
+    @staticmethod
+    def _slice_chart_window(weather, days: int):
+        """Return chart arrays limited to the selected horizon (24h/3j/7j)."""
+        if not weather.ok:
+            return None
+
+        start = weather._current_index()
+        horizon = max(1, days) * 24
+        end = min(len(weather.times), start + horizon)
+
+        # Fallback if slicing yields nothing (edge cases around timestamps)
+        if start >= end:
+            start = 0
+            end = len(weather.times)
+
+        return {
+            "labels": weather.times[start:end],
+            "precip": weather.precipitation[start:end],
+            "wind": weather.wind_speed[start:end],
+            "et0": weather.evapotranspiration[start:end],
+            "soil_0": weather.soil_temp_0cm[start:end],
+            "soil_6": weather.soil_temp_6cm[start:end],
+            "soil_18": weather.soil_temp_18cm[start:end],
+            "soil_54": weather.soil_temp_54cm[start:end],
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         garden = get_object_or_404(Garden, slug=self.kwargs["garden_slug"])
@@ -37,6 +63,7 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             context["location_source"] = "Paris (par défaut)"
 
         days = int(self.request.GET.get("days", 3))
+        days = 1 if days == 1 else 3 if days == 3 else 7
         force_refresh = self.request.GET.get("refresh") == "1"
         weather = fetch_weather(
             lat, lon, forecast_days=days, force_refresh=force_refresh
@@ -58,15 +85,28 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             # Profiles dict for inline selector
             context["profiles"] = WATERING_PROFILES
 
-            # Serialize for Chart.js (only charts we display)
-            context["chart_labels"] = json.dumps(weather.times)
-            context["chart_precipitation"] = json.dumps(weather.precipitation)
-            context["chart_wind_speed"] = json.dumps(weather.wind_speed)
-            context["chart_et0"] = json.dumps(weather.evapotranspiration)
-            context["chart_soil_0"] = json.dumps(weather.soil_temp_0cm)
-            context["chart_soil_6"] = json.dumps(weather.soil_temp_6cm)
-            context["chart_soil_18"] = json.dumps(weather.soil_temp_18cm)
-            context["chart_soil_54"] = json.dumps(weather.soil_temp_54cm)
+            window = self._slice_chart_window(weather, days)
+
+            # Serialize for Chart.js (selected range only)
+            context["chart_labels"] = json.dumps(window["labels"])
+            context["chart_precipitation"] = json.dumps(window["precip"])
+            context["chart_wind_speed"] = json.dumps(window["wind"])
+            context["chart_et0"] = json.dumps(window["et0"])
+            context["chart_soil_0"] = json.dumps(window["soil_0"])
+            context["chart_soil_6"] = json.dumps(window["soil_6"])
+            context["chart_soil_18"] = json.dumps(window["soil_18"])
+            context["chart_soil_54"] = json.dumps(window["soil_54"])
+
+            precip_total = sum(v or 0 for v in window["precip"])
+            et0_total = sum(v or 0 for v in window["et0"])
+            soil6 = [v for v in window["soil_6"] if v is not None]
+            soil_delta = 0.0
+            if len(soil6) >= 2:
+                soil_delta = soil6[-1] - soil6[0]
+
+            context["trend_precip_total"] = round(precip_total, 1)
+            context["trend_et0_total"] = round(et0_total, 1)
+            context["trend_soil6_delta"] = round(soil_delta, 1)
 
         return context
 
