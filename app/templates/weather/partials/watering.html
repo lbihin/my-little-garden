@@ -46,9 +46,17 @@
           <div class="flex justify-between text-xs mt-1">
             <span class="opacity-40">0 mm</span>
             {% if actionable_weekly_deficit > 0 %}
-              <span class="font-semibold text-warning">▲ À corriger : {{ actionable_weekly_deficit|floatformat:0 }} mm (seuil profil déjà déduit)</span>
+              {% if is_strict_profile %}
+                <span class="font-semibold text-warning">▲ À corriger : {{ actionable_weekly_deficit|floatformat:0 }} mm (mode pro: tout déficit est traité)</span>
+              {% else %}
+                <span class="font-semibold text-warning">▲ À corriger : {{ actionable_weekly_deficit|floatformat:0 }} mm (seuil profil déjà déduit)</span>
+              {% endif %}
             {% else %}
-              <span class="font-semibold text-success">✓ Pas d'arrosage requis selon votre profil</span>
+              {% if is_strict_profile %}
+                <span class="font-semibold text-success">✓ Pas de déficit détecté en mode pro</span>
+              {% else %}
+                <span class="font-semibold text-success">✓ Pas d'arrosage requis selon votre profil</span>
+              {% endif %}
             {% endif %}
             <span class="opacity-40">{{ report.watering.weekly_need|floatformat:0 }} mm</span>
           </div>
@@ -81,7 +89,7 @@
         <!-- Total litres callout -->
         {% if report.watering.surface > 0 and actionable_total_litres > 0 %}
           <div class="alert alert-warning mt-3 py-2">
-            <span class="text-sm">💡 Pour vos <strong>{{ report.watering.surface }} m²</strong> : arrosez environ <strong>{{ actionable_total_litres|floatformat:0 }} litres</strong> répartis sur la semaine</span>
+            <span class="text-sm">💡 Pour vos <strong>{{ report.watering.surface }} m²</strong> : arrosez environ <strong>{{ actionable_total_litres|floatformat:0 }} litres</strong> répartis sur la semaine{% if is_strict_profile %} (objectif pro){% endif %}</span>
           </div>
         {% elif report.watering.surface > 0 %}
           <div class="alert alert-success mt-3 py-2">

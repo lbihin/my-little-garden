@@ -64,11 +64,37 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
             ignore = profile_meta["ignore_threshold"]
             warn = profile_meta["warn_threshold"]
 
+            if watering.profile == "pro":
+                if watering.weekly_deficit <= 0:
+                    return {
+                        "level": "ok",
+                        "title": "Objectif qualité tenu",
+                        "detail": "Aucun déficit détecté pour le niveau Greenkeeper pro.",
+                    }
+                if watering.weekly_deficit <= warn:
+                    return {
+                        "level": "info",
+                        "title": "Rattrapage fin conseillé",
+                        "detail": f"Déficit détecté: {watering.weekly_deficit:.0f} mm cette semaine (mode pro).",
+                    }
+                return {
+                    "level": "warn",
+                    "title": "Arrosage prioritaire",
+                    "detail": f"Déficit important: {watering.weekly_deficit:.0f} mm cette semaine (mode pro).",
+                }
+
+            if watering.profile == "laissez_faire":
+                return {
+                    "level": "info",
+                    "title": "Mode laisser-faire actif",
+                    "detail": "La stratégie accepte la variabilité hydrique et limite l'arrosage.",
+                }
+
             if watering.weekly_deficit <= ignore:
                 return {
                     "level": "ok",
                     "title": "Aucune action urgente",
-                    "detail": "Les besoins en eau sont couverts sur la période.",
+                    "detail": "Le déficit est dans la zone de tolérance de votre stratégie.",
                 }
             if watering.weekly_deficit <= warn:
                 return {
@@ -99,6 +125,25 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
         ignore = profile_meta["ignore_threshold"]
         warn = profile_meta["warn_threshold"]
 
+        if watering.profile == "pro":
+            if watering.weekly_deficit <= 0:
+                return "Ne pas arroser: aucun déficit détecté en mode pro."
+            if watering.surface > 0 and watering.total_litres > 0:
+                sessions = 1 if watering.weekly_deficit <= warn else 2
+                litres_per_session = watering.total_litres / sessions
+                return (
+                    f"Arroser {watering.total_litres:.0f} L au total "
+                    f"en {sessions} passage(s) (~{litres_per_session:.0f} L/passage) pour tenir l'objectif pro."
+                )
+            sessions = 1 if watering.weekly_deficit <= warn else 2
+            return (
+                f"Apporter {watering.weekly_deficit:.0f} mm d'arrosage "
+                f"en {sessions} passage(s) pour tenir l'objectif pro."
+            )
+
+        if watering.profile == "laissez_faire":
+            return "Ne pas arroser: la stratégie laissez-faire privilégie les pluies naturelles."
+
         if watering.weekly_deficit <= ignore:
             return "Ne pas arroser, les besoins sont couverts."
 
@@ -124,24 +169,42 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
                 "actionable_weekly_deficit": 0.0,
                 "deficit_ignore_threshold": 0.0,
                 "actionable_total_litres": 0.0,
+                "is_strict_profile": False,
+                "profile_strategy_note": "",
             }
 
         watering = report.watering
         profile_meta = WATERING_PROFILES.get(
             watering.profile, WATERING_PROFILES["standard"]
         )
-        ignore_threshold = float(profile_meta["ignore_threshold"])
+        raw_ignore_threshold = float(profile_meta["ignore_threshold"])
+        # In pro mode, every deficit is actionable.
+        ignore_threshold = 0.0 if watering.profile == "pro" else raw_ignore_threshold
         raw_deficit = float(watering.weekly_deficit)
         actionable_deficit = max(0.0, raw_deficit - ignore_threshold)
         actionable_total_litres = (
             actionable_deficit * watering.surface if watering.surface > 0 else 0.0
         )
 
+        strategy_note = ""
+        if watering.profile == "pro":
+            strategy_note = "Mode pro: aucun seuil de tolérance, tout déficit est traité."
+        elif watering.profile == "laissez_faire":
+            strategy_note = "Mode laisser-faire: tolérance maximale au déficit."
+        elif watering.profile == "resilient":
+            strategy_note = "Mode résilient: légère tolérance avant action."
+        elif watering.profile == "eco":
+            strategy_note = "Mode éco: tolérance modérée pour économiser l'eau."
+        else:
+            strategy_note = "Mode standard: équilibre confort gazon / consommation d'eau."
+
         return {
             "raw_weekly_deficit": round(raw_deficit, 1),
             "actionable_weekly_deficit": round(actionable_deficit, 1),
             "deficit_ignore_threshold": round(ignore_threshold, 1),
             "actionable_total_litres": round(actionable_total_litres, 0),
+            "is_strict_profile": watering.profile == "pro",
+            "profile_strategy_note": strategy_note,
         }
 
     def get_context_data(self, **kwargs):

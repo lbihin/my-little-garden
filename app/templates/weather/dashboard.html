@@ -38,7 +38,19 @@
         <span>{{ weather.error }}</span>
       </div>
     {% else %}
-      <div class="card bg-base-100 shadow-sm border-l-4 {% if focus.level == 'ok' %}border-success{% elif focus.level == 'warn' %}border-warning{% else %}border-info{% endif %}">
+      <div class="card bg-base-100 shadow-sm border-l-4 {% if focus.level == 'ok' %}
+          
+          border-success
+
+        {% elif focus.level == 'warn' %}
+          
+          border-warning
+
+        {% else %}
+          
+          border-info
+
+        {% endif %}">
         <div class="card-body p-4">
           <h3 class="font-semibold text-base">Que faire maintenant</h3>
           <p class="text-lg font-bold">{{ focus.title }}</p>
@@ -52,13 +64,40 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div class="stat bg-base-100 shadow-sm rounded-box p-4" title="Zone racines (~6 cm) — la pousse reprend au-dessus de 8 °C">
           <div class="stat-title text-xs">Température sol racines</div>
-          <div class="stat-value text-2xl {% if current.soil_6cm < 8 %}text-info{% elif current.soil_6cm > 25 %}text-warning{% else %}text-success{% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
+          <div class="stat-value text-2xl {% if current.soil_6cm < 8 %}
+              
+              text-info
+
+            {% elif current.soil_6cm > 25 %}
+              
+              text-warning
+
+            {% else %}
+              
+              text-success
+
+            {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
           <div class="stat-desc">Indicateur principal de croissance</div>
         </div>
         <div class="stat bg-base-100 shadow-sm rounded-box p-4">
           <div class="stat-title text-xs">Arrosage à faire cette semaine</div>
-          <div class="stat-value text-2xl {% if actionable_weekly_deficit > 0 %}text-warning{% else %}text-success{% endif %}">{{ actionable_weekly_deficit|floatformat:1 }} mm</div>
-          <div class="stat-desc">Déficit brut : {{ raw_weekly_deficit|floatformat:1 }} mm · seuil action : {{ deficit_ignore_threshold|floatformat:0 }} mm</div>
+          <div class="stat-value text-2xl {% if actionable_weekly_deficit > 0 %}
+              
+              text-warning
+
+            {% else %}
+              
+              text-success
+
+            {% endif %}">{{ actionable_weekly_deficit|floatformat:1 }} mm</div>
+          <div class="stat-desc">
+            {% if is_strict_profile %}
+              Déficit brut : {{ raw_weekly_deficit|floatformat:1 }} mm · mode pro (pas de tolérance)
+            {% else %}
+              Déficit brut : {{ raw_weekly_deficit|floatformat:1 }} mm · seuil action : {{ deficit_ignore_threshold|floatformat:0 }} mm
+            {% endif %}
+          </div>
+          <div class="stat-desc mt-1">{{ profile_strategy_note }}</div>
         </div>
       </div>
 
