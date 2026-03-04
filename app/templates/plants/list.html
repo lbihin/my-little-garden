@@ -6,10 +6,13 @@
 
 {% block garden_detail_content %}
   <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <h2 class="text-xl font-bold flex items-center gap-2">
-      <i data-lucide="leaf" class="w-5 h-5 text-success"></i>
-      Mes plantes
-    </h2>
+    <div class="flex items-center gap-3">
+      <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Tableau de bord</a>
+      <h2 class="text-xl font-bold flex items-center gap-2">
+        <i data-lucide="leaf" class="w-5 h-5 text-success"></i>
+        Mes plantes
+      </h2>
+    </div>
     <a href="{% url 'gardens:plants:identify' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">＋ Ajouter une plante</a>
   </div>
 

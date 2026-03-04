@@ -6,8 +6,11 @@
 
 {% block garden_detail_content %}
   <div class="flex flex-col gap-6">
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-bold">Activités</h2>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'gardens:detail' slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1">← Tableau de bord</a>
+        <h2 class="text-2xl font-bold">Activités</h2>
+      </div>
       <a href="{% url 'gardens:activities:create_activity' garden_slug=garden.slug %}" class="btn btn-primary btn-sm gap-1">+ Nouvelle activité</a>
     </div>
 
@@ -31,7 +34,9 @@
                   
                   
                   
+                  
                   bg-error/10
+
 
 
 
@@ -39,7 +44,9 @@
                   
                   
                   
+                  
                   bg-warning/10
+
 
 
 
@@ -47,7 +54,9 @@
                   
                   
                   
+                  
                   bg-success/10
+
 
 
 
@@ -55,7 +64,9 @@
                   
                   
                   
+                  
                   bg-base-200/40
+
 
 
 
@@ -68,7 +79,9 @@
                         
                         
                         
+                        
                         badge-error
+
 
 
 
@@ -76,7 +89,9 @@
                         
                         
                         
+                        
                         badge-warning
+
 
 
 
@@ -84,7 +99,9 @@
                         
                         
                         
+                        
                         badge-success
+
 
 
 
@@ -92,7 +109,9 @@
                         
                         
                         
+                        
                         badge-info badge-outline
+
 
 
 
@@ -126,13 +145,17 @@
                 <div class="stat-value text-lg {% if report.watering.weekly_deficit > 0 %}
                     
                     
+                    
                     text-warning
+
 
 
                   {% else %}
                     
                     
+                    
                     text-success
+
 
 
                   {% endif %}">{{ report.watering.weekly_deficit|floatformat:0 }} mm</div>

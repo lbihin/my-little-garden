@@ -8,6 +8,7 @@
   <!-- Header -->
   <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
     <div>
+      <a href="{% url 'gardens:plants:list' garden_slug=garden.slug %}" class="btn btn-ghost btn-sm gap-1 mb-2">← Mes plantes</a>
       <h2 class="text-xl font-bold">{{ plant.common_name }}</h2>
       {% if plant.scientific_name %}
         <p class="text-sm italic opacity-50">{{ plant.scientific_name }}</p>
