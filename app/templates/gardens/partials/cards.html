@@ -10,7 +10,9 @@
 {% else %}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     {% for garden in gardens %}
-      <div class="card card-border bg-base-100 shadow-sm hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ garden.get_absolute_url }}'">
+      {# Overlay anchor makes the whole card clickable — no JS needed #}
+      <div class="card card-border bg-base-100 shadow-sm hover:shadow-lg transition-shadow relative">
+        <a href="{{ garden.get_absolute_url }}" class="absolute inset-0 z-0 rounded-[inherit]" aria-label="Ouvrir {{ garden.name }}"></a>
         <figure>
           <img src="{{ garden.get_card_image_url }}" alt="{{ garden.name }}" class="h-40 w-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='{% static 'img/default-garden.svg' %}';" />
         </figure>
@@ -18,9 +20,9 @@
           <h2 class="card-title">{{ garden.name }}</h2>
           <p class="text-sm opacity-70 line-clamp-2">{{ garden.description|default:'Pas de description' }}</p>
           <p class="text-xs opacity-50">Mis à jour {{ garden.get_last_update }}</p>
-          <div class="card-actions justify-end mt-2">
-            <a href="{{ garden.get_edit_url }}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">✏️ Modifier</a>
-            <button class="btn btn-error btn-sm btn-outline" onclick="event.stopPropagation();" hx-post="{{ garden.get_delete_url }}" hx-target="#garden-list" hx-confirm="Êtes-vous certain de vouloir supprimer « {{ garden.name }} » ?">🗑️ Supprimer</button>
+          <div class="card-actions justify-end mt-2 relative z-10">
+            <a href="{{ garden.get_edit_url }}" class="btn btn-ghost btn-sm">✏️ Modifier</a>
+            <button class="btn btn-error btn-sm btn-outline" hx-post="{{ garden.get_delete_url }}" hx-target="#garden-list" hx-confirm="Êtes-vous certain de vouloir supprimer « {{ garden.name }} » ?">🗑️ Supprimer</button>
           </div>
         </div>
       </div>

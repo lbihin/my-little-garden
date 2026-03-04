@@ -85,6 +85,12 @@ class Activity(models.Model):
             kwargs={"garden_slug": self.garden.slug, "pk": self.pk},
         )
 
+    def get_delete_url(self):
+        return reverse(
+            "gardens:activities:delete_activity",
+            kwargs={"garden_slug": self.garden.slug, "pk": self.pk},
+        )
+
     def get_creation_date(self):
         return self.creation.strftime("%d.%m.%y")
 

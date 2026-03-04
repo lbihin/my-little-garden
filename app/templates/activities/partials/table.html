@@ -2,21 +2,26 @@
   <thead>
     <tr>
       <th>Date</th>
-      <th>Commentaire</th>
+      <th>Intervention</th>
       <th>Quantité</th>
-      <th>Dernière MAJ</th>
-      <th></th>
+      <th class="hidden sm:table-cell">MAJ</th>
+      <th class="text-right"></th>
     </tr>
   </thead>
   <tbody>
     {% for activity in activities %}
       <tr class="hover">
-        <td class="font-mono text-sm">{{ activity.get_creation_date }}</td>
-        <td class="max-w-xs truncate">{{ activity.comment|default:'—' }}</td>
-        <td>{{ activity.get_quantity }}</td>
-        <td class="text-sm opacity-60">{{ activity.since_update }}</td>
+        <td class="font-mono text-sm whitespace-nowrap">{{ activity.get_creation_date }}</td>
+        <td class="max-w-xs">
+          <span class="line-clamp-2 text-sm">{{ activity.comment|default:'—' }}</span>
+        </td>
+        <td class="text-sm">{{ activity.get_quantity }}</td>
+        <td class="text-xs opacity-50 hidden sm:table-cell">{{ activity.since_update }}</td>
         <td>
-          <button class="btn btn-ghost btn-xs" hx-get="{{ activity.get_absolute_url }}" hx-target="#activity-detail" hx-swap="innerHTML">Détails</button>
+          <div class="flex items-center justify-end gap-1">
+            <button class="btn btn-ghost btn-xs" hx-get="{{ activity.get_absolute_url }}" hx-target="#activity-detail" hx-swap="innerHTML"><i data-lucide="eye" class="w-3 h-3"></i></button>
+            <button class="btn btn-ghost btn-xs text-error" hx-post="{{ activity.get_delete_url }}" hx-target="#journal-table" hx-swap="innerHTML" hx-confirm="Supprimer cette intervention ?"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+          </div>
         </td>
       </tr>
     {% endfor %}

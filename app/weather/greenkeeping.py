@@ -54,6 +54,9 @@ class Advice:
     title: str
     detail: str
     status: Status = Status.INFO
+    # True  → user can log "Fait" (something TO DO)
+    # False → purely informational / preventive (state, don't-do-X)
+    actionable: bool = True
 
 
 @dataclass
@@ -238,6 +241,7 @@ def _analyse_grass_growth(snap: dict, report: GreenkeepingReport) -> None:
                 f"Sol à {soil_roots:.1f} °C à 6 cm de profondeur (racines). "
                 f"La croissance reprend au-dessus de 8 °C.",
                 Status.INFO,
+                actionable=False,
             )
         )
     elif soil_roots < 8:
@@ -249,6 +253,7 @@ def _analyse_grass_growth(snap: dict, report: GreenkeepingReport) -> None:
                 f"la pousse va redémarrer bientôt (seuil : 8 °C). "
                 f"Surface : {soil_surface:.1f} °C.",
                 Status.INFO,
+                actionable=False,
             )
         )
     elif soil_roots < 12:
@@ -258,6 +263,7 @@ def _analyse_grass_growth(snap: dict, report: GreenkeepingReport) -> None:
                 "Le gazon pousse lentement",
                 f"Sol à {soil_roots:.1f} °C aux racines, air à {air:.0f} °C. Croissance modérée.",
                 Status.OK,
+                actionable=False,
             )
         )
     elif soil_roots <= 25:
@@ -268,6 +274,7 @@ def _analyse_grass_growth(snap: dict, report: GreenkeepingReport) -> None:
                 f"Sol à {soil_roots:.1f} °C aux racines, air à {air:.0f} °C. "
                 f"Conditions optimales de croissance.",
                 Status.OK,
+                actionable=False,
             )
         )
     else:
@@ -298,6 +305,7 @@ def _analyse_mowing(snap: dict, report: GreenkeepingReport) -> None:
                 "Sol trop humide pour tondre",
                 "Le sol est gorgé d'eau — attendez qu'il sèche pour éviter d'arracher le gazon.",
                 Status.WARN,
+                actionable=False,
             )
         )
     elif rain_prob > 60:
@@ -307,6 +315,7 @@ def _analyse_mowing(snap: dict, report: GreenkeepingReport) -> None:
                 "Pluie prévue — reportez la tonte",
                 f"Probabilité de pluie : {rain_prob:.0f} %. Tondre sur herbe sèche donne un meilleur résultat.",
                 Status.INFO,
+                actionable=False,
             )
         )
     elif air < 3:
@@ -316,6 +325,7 @@ def _analyse_mowing(snap: dict, report: GreenkeepingReport) -> None:
                 "Trop froid pour tondre",
                 f"Air à {air:.0f} °C. Évitez de tondre par gel ou quasi-gel.",
                 Status.WARN,
+                actionable=False,
             )
         )
     else:
@@ -341,6 +351,7 @@ def _analyse_trampling(snap: dict, report: GreenkeepingReport) -> None:
                 "Sol gelé — évitez de marcher",
                 "Piétiner un gazon gelé casse les brins. Attendez le dégel.",
                 Status.DANGER,
+                actionable=False,
             )
         )
     elif moisture > 0.50:
@@ -350,6 +361,7 @@ def _analyse_trampling(snap: dict, report: GreenkeepingReport) -> None:
                 "Sol détrempé — limitez le passage",
                 "Le sol saturé se compacte facilement sous les pas.",
                 Status.WARN,
+                actionable=False,
             )
         )
 
@@ -378,15 +390,17 @@ def _analyse_scarification(snap: dict, report: GreenkeepingReport) -> None:
                 "Scarification : sol encore un peu froid",
                 f"Sol à {soil:.1f} °C — attendez qu'il dépasse 10 °C pour scarifier.",
                 Status.INFO,
+                actionable=False,
             )
         )
     elif not good_months and month in (5, 6, 7, 8):
         report.advices.append(
             Advice(
-                "🪮",
+                "🪴",
                 "Hors saison de scarification",
                 "La scarification se fait au printemps (mars-avril) ou à l'automne (sept.-oct.).",
                 Status.INFO,
+                actionable=False,
             )
         )
 
@@ -428,6 +442,7 @@ def _analyse_fertiliser(report: GreenkeepingReport) -> None:
                 "Pas d'engrais en hiver",
                 "Le gazon est en dormance — toute fertilisation serait gaspillée.",
                 Status.INFO,
+                actionable=False,
             )
         )
 
@@ -517,6 +532,7 @@ def _analyse_watering(
                     "laisser-faire, le gazon jaunira mais repartira "
                     "naturellement avec le retour des pluies.",
                     Status.INFO,
+                    actionable=False,
                 )
             )
         else:
@@ -526,6 +542,7 @@ def _analyse_watering(
                     "Pas d'arrosage — mode laisser-faire",
                     "Les précipitations naturelles suffisent pour le moment.",
                     Status.OK,
+                    actionable=False,
                 )
             )
         return
@@ -539,6 +556,7 @@ def _analyse_watering(
                 "Le sol est trop froid pour une croissance active. "
                 "Économisez l'eau jusqu'au redémarrage.",
                 Status.INFO,
+                actionable=False,
             )
         )
         return
@@ -551,7 +569,7 @@ def _analyse_watering(
             f"Pluies prévues : {weekly_precip:.0f} mm. "
             f"Aucun arrosage nécessaire."
         )
-        report.advices.append(Advice("💧", "Pas besoin d'arroser", detail, Status.OK))
+        report.advices.append(Advice("💧", "Pas besoin d'arroser", detail, Status.OK, actionable=False))
     elif weekly_deficit <= warn:
         detail = (
             f"Besoin : {weekly_need:.0f} mm/sem − pluies {weekly_precip:.0f} mm "
@@ -589,6 +607,7 @@ def _analyse_watering(
                 "Un récupérateur de 300 L couvre ~1 arrosage pour 30 m². "
                 "Tondez haut (6-8 cm) pour réduire l'évaporation du sol.",
                 Status.INFO,
+                actionable=False,
             )
         )
     elif profile_key == "resilient" and weekly_deficit > ignore:
@@ -600,6 +619,7 @@ def _analyse_watering(
                 "déficit. Il reverdit naturellement en 2-4 semaines "
                 "après le retour des pluies.",
                 Status.INFO,
+                actionable=False,
             )
         )
     elif profile_key == "pro":
@@ -611,6 +631,7 @@ def _analyse_watering(
                 "maintenir l'humidité du sol entre 0,25 et 0,35 m³/m³. "
                 "Programmez l'arrosage en fonction du tensiomètre.",
                 Status.INFO,
+                actionable=False,
             )
         )
 
@@ -636,6 +657,7 @@ def _analyse_treatment_window(snap: dict, report: GreenkeepingReport) -> None:
                 "Traitement déconseillé",
                 "Conditions défavorables : " + ", ".join(problems) + ".",
                 Status.WARN,
+                actionable=False,
             )
         )
     else:
@@ -675,6 +697,7 @@ def _analyse_overseeding(snap: dict, report: GreenkeepingReport) -> None:
                 "Sursemis : sol pas encore prêt",
                 f"Sol à {soil:.1f} °C — il faut entre 10 et 25 °C pour une bonne germination.",
                 Status.INFO,
+                actionable=False,
             )
         )
 

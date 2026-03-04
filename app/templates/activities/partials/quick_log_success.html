@@ -1,0 +1,13 @@
+{# ── Main response: replaces the <li> via hx-target="closest li" ────────── #}
+<li class="flex items-start gap-3 p-3 rounded-lg opacity-40 pointer-events-none">
+  <i data-lucide="circle-check" class="w-4 h-4 mt-0.5 text-success shrink-0"></i>
+  <div class="flex-1">
+    <span class="text-sm line-through">{{ task_title }}</span>
+    <span class="ml-2 text-xs text-success font-medium">Enregistré ✓</span>
+  </div>
+</li>
+
+{# ── OOB: update the journal below without a full page reload ────────────── #}
+<div id="journal-table" hx-swap-oob="true">
+  {% include 'activities/partials/table.html' %}
+</div>

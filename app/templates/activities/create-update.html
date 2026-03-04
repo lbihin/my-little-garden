@@ -23,6 +23,12 @@
       <div class="card-body">
         <h2 class="card-title text-2xl mb-4">Nouvelle Activité</h2>
 
+        {% if prefill %}
+          <div class="alert alert-info mb-4 py-2">
+            <span class="text-sm">Suggestion pré-remplie depuis une tâche : <strong>{{ prefill }}</strong></span>
+          </div>
+        {% endif %}
+
         <form method="post">
           {% csrf_token %}
 
