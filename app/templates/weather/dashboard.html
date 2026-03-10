@@ -42,19 +42,31 @@
       <div class="card bg-base-100 shadow-sm border-l-4 {% if focus.level == 'ok' %}
           
           
+          
+          
           border-success
+
+
 
 
         {% elif focus.level == 'warn' %}
           
           
+          
+          
           border-warning
+
+
 
 
         {% else %}
           
           
+          
+          
           border-info
+
+
 
 
         {% endif %}">
@@ -74,19 +86,31 @@
           <div class="stat-value text-2xl {% if current.soil_6cm < 8 %}
               
               
+              
+              
               text-info
+
+
 
 
             {% elif current.soil_6cm > 25 %}
               
               
+              
+              
               text-warning
+
+
 
 
             {% else %}
               
               
+              
+              
               text-success
+
+
 
 
             {% endif %}">{{ current.soil_6cm|floatformat:1 }}°C</div>
@@ -97,13 +121,21 @@
           <div class="stat-value text-2xl {% if actionable_weekly_deficit > 0 %}
               
               
+              
+              
               text-warning
+
+
 
 
             {% else %}
               
               
+              
+              
               text-success
+
+
 
 
             {% endif %}">{{ actionable_weekly_deficit|floatformat:1 }} mm</div>
@@ -128,15 +160,7 @@
 
       <div class="collapse collapse-arrow bg-base-100 shadow-sm">
         <input type="checkbox" />
-        <div class="collapse-title text-sm font-medium">
-          Voir les tendances détaillées (prochaines{% if days == 1 %}
-            24h
-          {% elif days == 3 %}
-            72h
-          {% else %}
-            7 jours
-          {% endif %})
-        </div>
+        <div class="collapse-title text-sm font-medium">Voir les tendances détaillées</div>
         <div class="collapse-content">
           <div class="flex flex-wrap items-center gap-2 text-sm opacity-70 mb-3">
             <span class="badge badge-ghost">🌧️ Pluie prévue {{ trend_precip_total|floatformat:1 }} mm</span>
@@ -145,15 +169,7 @@
           </div>
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body p-4">
-              <h4 class="card-title text-sm">
-                Prévisions : pluie vs évapotranspiration (prochaines{% if days == 1 %}
-                  24h
-                {% elif days == 3 %}
-                  72h
-                {% else %}
-                  7 jours
-                {% endif %})
-              </h4>
+              <h4 class="card-title text-sm">Prévisions : pluie vs évapotranspiration</h4>
               <div class="w-full" style="min-height: 260px;">
                 <canvas id="precipChart"></canvas>
               </div>
