@@ -224,8 +224,10 @@ class WeatherDashboardView(LoginRequiredMixin, TemplateView):
         days = int(self.request.GET.get("days", 3))
         days = 1 if days == 1 else 3 if days == 3 else 7
         force_refresh = self.request.GET.get("refresh") == "1"
+        # Always fetch 7 forecast days so the watering analysis uses a
+        # consistent data window regardless of the chart display horizon.
         weather = fetch_weather(
-            lat, lon, forecast_days=days, force_refresh=force_refresh
+            lat, lon, forecast_days=7, force_refresh=force_refresh
         )
         context["weather"] = weather
         context["days"] = days
@@ -290,7 +292,9 @@ class ChangeWateringProfileView(LoginRequiredMixin, View):
         else:
             lat, lon = DEFAULT_LAT, DEFAULT_LON
 
-        weather = fetch_weather(lat, lon)
+        days = int(request.POST.get("days", 3))
+        days = 1 if days == 1 else 3 if days == 3 else 7
+        weather = fetch_weather(lat, lon, forecast_days=7)
         report = analyse(
             weather, profile=garden.watering_profile, surface=garden.surface or 0
         )
@@ -299,6 +303,7 @@ class ChangeWateringProfileView(LoginRequiredMixin, View):
             "garden": garden,
             "report": report,
             "profiles": WATERING_PROFILES,
+            "days": days,
         }
         context.update(WeatherDashboardView._watering_actionability(report))
         return render(request, "weather/partials/watering.html", context)
